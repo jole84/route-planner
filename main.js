@@ -97,6 +97,10 @@ function drawPoiLayer() {
   }
 }
 
+function getPixelDistance (pixel, pixel2) {
+  return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
+}
+
 var slitlagerkarta = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
@@ -422,7 +426,7 @@ function addPositionMapCenter() {
 }
 
 function removePositionButtonFunction() {
-  removePosition(lineArray[lineArray.length - 1] || 0);
+  removePosition(map.getPixelFromCoordinate(lineArray[lineArray.length - 1]) || 0);
 }
 
 function addPosition(coordinate) {
@@ -430,30 +434,19 @@ function addPosition(coordinate) {
   routeMe();
 }
 
-function removePosition(coordinate) {
-  var removedOne = false;
-  var removedPoi = false;
-
+function removePosition(pixel) {
   // remove poi
   for (var i = 0; i < poiList.length; i++) {
-    if (getDistance(toLonLat(coordinate), poiList[i][0]) < 300) {
+    if (getPixelDistance(pixel, map.getPixelFromCoordinate(fromLonLat(poiList[i][0]))) < 40) {
       poiList.splice(poiList.indexOf(poiList[i]), 1);
-      removedPoi = true;
-      break;
+      drawPoiLayer();
     }
   }
-
-  // redraw poi layer
-  if (removedPoi) {
-    drawPoiLayer();
-  }
-
+  
   // removes wp if less than 300 m
   for (var i = 0; i < lineArray.length; i++) {
-    if (getDistance(toLonLat(coordinate), toLonLat(lineArray[i])) < 300) {
-      console.log(getDistance(toLonLat(coordinate), toLonLat(lineArray[i])));
+    if (getPixelDistance(pixel, map.getPixelFromCoordinate(lineArray[i])) < 40) {
       lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
-      removedOne = true;
     }
   }
 
@@ -715,7 +708,7 @@ document.addEventListener("keydown", function (event) {
       removePositionButtonFunction();
     }
     if (event.key == "Delete") {
-      removePosition(map.getView().getCenter());
+      removePosition([window.innerHeight / 2, window.innerWidth / 2]);
     }
     if (event.key == "v") {
       mapMode++;
@@ -733,7 +726,7 @@ document.addEventListener("mouseup", function (event) {
     var eventPixel = [event.clientX, event.clientY];
     map.forEachFeatureAtPixel(eventPixel, function (feature, layer) {
       if (feature.getGeometry().getType() == "Point") {
-        removePosition(map.getCoordinateFromPixel(eventPixel));
+        removePosition(eventPixel);
       }
     });
   }
