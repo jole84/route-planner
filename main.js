@@ -708,7 +708,7 @@ document.addEventListener("keydown", function (event) {
       removePositionButtonFunction();
     }
     if (event.key == "Delete") {
-      removePosition([window.innerHeight / 2, window.innerWidth / 2]);
+      removePosition([window.innerWidth / 2, window.innerHeight / 2]);
     }
     if (event.key == "v") {
       mapMode++;
