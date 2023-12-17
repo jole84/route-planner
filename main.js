@@ -54,10 +54,6 @@ document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("map").style.pointerEvents = "unset";
 };
 
-// window.onunload = window.onbeforeunload = function () {
-//   return "";
-// };
-
 const overlay = new Overlay({
   element: popupContainer,
   autoPan: {
@@ -73,29 +69,14 @@ popupCloser.onclick = function () {
   return false;
 };
 
-var poiList = [];
-
 savePoiNameButton.onclick = function () {
   const coordinate = toLonLat(poiCoordinate);
   var fileName = fileNameInput.value;
-  poiList.push([coordinate, fileName]);
+  // poiList.push([coordinate, fileName]);
   overlay.setPosition(undefined);
   popupCloser.blur();
-  drawPoiLayer();
   return false;
 };
-
-function drawPoiLayer() {
-  clearLayer(poiLayer);
-  for (var i = 0; i < poiList.length; i++) {
-    const poiMarker = new Feature({
-      routeFeature: true,
-      name: poiList[i][1],
-      geometry: new Point(fromLonLat(poiList[i][0])),
-    });
-    poiLayer.getSource().addFeature(poiMarker);
-  }
-}
 
 function getPixelDistance (pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
@@ -106,7 +87,6 @@ var slitlagerkarta = new TileLayer({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    // zDirection: -1,
   }),
   maxZoom: 15.5,
 });
@@ -116,7 +96,6 @@ var slitlagerkarta_nedtonad = new TileLayer({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
     maxZoom: 14,
-    // zDirection: -1,
   }),
   maxZoom: 15.5,
   visible: false,
@@ -146,15 +125,7 @@ var osm = new TileLayer({
   visible: false,
 });
 
-var lineArray = [];
-var lineStringGeometry = new LineString([]);
-var trackLine = new Feature({
-  type: "trackLine",
-  routeFeature: true,
-  geometry: lineStringGeometry,
-});
-
-const trackStyle = {
+const routeStyle = {
   startPoint: new Style({
     image: new Icon({
       anchor: [0.5, 1],
@@ -183,14 +154,14 @@ const trackStyle = {
       width: 6,
     }),
   }),
-  route: new Style({
+  routeLine: new Style({
     stroke: new Stroke({
       width: 10,
       color: [255, 0, 255, 0.4],
     }),
   }),
 };
-trackStyle["MultiLineString"] = trackStyle["LineString"];
+routeStyle["MultiLineString"] = routeStyle["LineString"];
 
 const gpxStyle = {
   Point: new Style({
@@ -221,26 +192,36 @@ const gpxStyle = {
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 
+// var lineArray = [];
+var trackLineString = new LineString([]);
+var trackLineFeature = new Feature({
+  type: "trackLine",
+  routeFeature: true,
+  geometry: trackLineString,
+});
+
 var routeLineLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
-    return trackStyle[feature.get("type")];
+    return routeStyle[feature.get("type")];
   },
 });
 
 var trackLineLayer = new VectorLayer({
   source: new VectorSource({
-    features: [trackLine],
+    // features: [trackLineFeature],
   }),
   style: function (feature) {
-    return trackStyle[feature.get("type")];
+    return routeStyle[feature.get("type")];
   },
 });
 
-var trackPoints = new VectorLayer({
-  source: new VectorSource(),
+var trackPointsLayer = new VectorLayer({
+  source: new VectorSource({
+    features: [trackLineFeature],
+  }),
   style: function (feature) {
-    return trackStyle[feature.get("type")];
+    return routeStyle[feature.get("type")];
   },
 });
 
@@ -297,7 +278,7 @@ const map = new Map({
     gpxLayer,
     routeLineLayer,
     trackLineLayer,
-    trackPoints,
+    trackPointsLayer,
     poiLayer,
   ],
   view: view,
@@ -308,46 +289,32 @@ const map = new Map({
 const keyboardPan = new KeyboardPan({ pixelDelta: 64 });
 map.addInteraction(keyboardPan);
 
-var lineArrayStraights = [];
-
-function getStraightPoints() {
-  lineArrayStraights = [];
-  trackPoints.getSource().forEachFeature(function (feature) {
-    if (feature.getGeometry().getType() == "Point") {
-      lineArrayStraights[feature.get("name")] = feature.get("straight");
-    }
-  });
-  var straightPoints = [];
-  for (var i = 0; i < lineArrayStraights.length; i++) {
-    if (lineArrayStraights[i]) {
-      straightPoints.push(i);
-    }
-  }
-  return straightPoints.join(",");
-}
-
-const modify = new Modify({ source: trackLineLayer.getSource() });
+const modify = new Modify({ source: trackPointsLayer.getSource() });
 const modifypoi = new Modify({ source: poiLayer.getSource() });
 
-lineStringGeometry.on("change", function () {
-  lineArray = lineStringGeometry.getCoordinates();
-  clearLayer(trackPoints);
+// trackLineFeature.on("change", function () {
+  // lineArray = trackLineFeature.getCoordinates();
+  // clearLayer(trackPoints);
   // add markers at waypoints
-  for (var i = 0; i < lineArray.length; i++) {
-    const marker = new Feature({
-      routeFeature: true,
-      name: i,
-      straight: lineArrayStraights[i] || false,
-      type: getPointType(i),
-      geometry: new Point(lineArray[i]),
-    });
-    trackPoints.getSource().addFeature(marker);
-  }
-});
+  // for (var i = 0; i < lineArray.length; i++) {
+  //   const marker = new Feature({
+  //     routeFeature: true,
+  //     name: i,
+  //     straight: lineArrayStraights[i] || false,
+  //     type: getPointType(i),
+  //     geometry: new Point(lineArray[i]),
+  //   });
+  //   trackPoints.getSource().addFeature(marker);
+  // }
+// });
 
 modify.on("modifyend", function () {
-  lineStringGeometry.setCoordinates(lineArray);
-  routeMe();
+  // trackLineString.setCoordinates([]);
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    console.log(feature.getGeometry().getCoordinates());
+    // trackLineString.appendCoordinate(feature.getGeometry().getCoordinates());
+  });
+
 });
 
 layerSelector.addEventListener("change", function () {
@@ -395,31 +362,8 @@ function savePoiPopup() {
   overlay.setPosition(poiCoordinate);
 }
 
-// touch check
-function isTouchDevice() {
-  return (
-    "ontouchstart" in window ||
-    navigator.maxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0
-  );
-}
-
-touchFriendlyCheck.addEventListener("change", function () {
-  if (touchFriendlyCheck.checked) {
-    map.removeInteraction(modify);
-    map.removeInteraction(modifypoi);
-  } else {
-    map.addInteraction(modify);
-    map.addInteraction(modifypoi);
-  }
-});
-if (isTouchDevice()) {
-  touchFriendlyCheck.checked = true;
-} else {
-  document.getElementById("touchFriendly").style.display = "none";
-  map.addInteraction(modify);
-  map.addInteraction(modifypoi);
-}
+map.addInteraction(modify);
+map.addInteraction(modifypoi);
 
 function addPositionMapCenter() {
   addPosition(map.getView().getCenter());
@@ -430,36 +374,58 @@ function removePositionButtonFunction() {
 }
 
 function addPosition(coordinate) {
-  lineStringGeometry.appendCoordinate(coordinate);
-  routeMe();
+  trackLineString.appendCoordinate(coordinate);
+
+  const marker = new Feature({
+    routeFeature: true,
+    name: trackPointsLayer.getSource().getFeatures().length,
+    straight: false,
+    type: getPointType(0),
+    geometry: new Point(coordinate),
+  });
+  marker.setId(trackPointsLayer.getSource().getFeatures().length);
+
+  console.log(marker.getId(), marker.getProperties());
+  trackPointsLayer.getSource().addFeature(marker);
 }
 
 function removePosition(pixel) {
+
+  var closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
+  var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
+  console.log(getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())));
+  // console.log(getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())));
+
+  trackPointsLayer.getSource().removeFeature(closestTrackPoint);
+
+  console.log(trackLineString.getCoordinates())
+
   // remove poi
-  for (var i = 0; i < poiList.length; i++) {
-    if (getPixelDistance(pixel, map.getPixelFromCoordinate(fromLonLat(poiList[i][0]))) < 40) {
-      poiList.splice(poiList.indexOf(poiList[i]), 1);
-      drawPoiLayer();
-    }
-  }
+
+  // if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())) < 40) {
+  //   poiLayer.getSource().removeFeature(closestPoi);
+  // }
   
-  // removes wp if less than 300 m
-  for (var i = 0; i < lineArray.length; i++) {
-    if (getPixelDistance(pixel, map.getPixelFromCoordinate(lineArray[i])) < 40) {
-      lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
-    }
-  }
+  // removes wp if less than 40 pixels
+  // if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
+  //   trackPoints.getSource().removeFeature(closestTrackPoint);
+  // }
+  // for (var i = 0; i < lineArray.length; i++) {
+  //   if (getPixelDistance(pixel, map.getPixelFromCoordinate(lineArray[i])) < 40) {
+  //     lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
+  //   }
+  // }
 
   // if only 1 wp, remove route and redraw startpoint
-  if (lineArray.length == 1) {
-    clearLayer(routeLineLayer);
-    infoDiv.innerHTML = "";
-    info2Div.innerHTML = "";
-    info3Div.innerHTML = "";
-  }
+  // if (lineArray.length == 1) {
+  //   clearLayer(routeLineLayer);
+  //   infoDiv.innerHTML = "";
+  //   info2Div.innerHTML = "";
+  //   info3Div.innerHTML = "";
+  // }
 
-  lineStringGeometry.setCoordinates(lineArray);
-  routeMe();
+  // lineStringGeometry.setCoordinates(lineArray);
+  // routeMe();
 }
 
 map.on("singleclick", function (event) {
@@ -489,13 +455,13 @@ map.on("singleclick", function (event) {
 });
 
 map.on("contextmenu", function (event) {
-  map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
-    if (feature.getGeometry().getType() == "Point") {
-      feature.set("straight", !feature.get("straight")); // boolean switch
-    }
-  });
+  // map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
+  //   if (feature.getGeometry().getType() == "Point") {
+  //     feature.set("straight", !feature.get("straight")); // boolean switch
+  //   }
+  // });
 
-  routeMe();
+  // routeMe();
 });
 
 var centerCoordinate;
@@ -699,51 +665,14 @@ function handleFileSelect(evt) {
   });
 }
 
-document.addEventListener("keydown", function (event) {
-  if (!overlay.getPosition()) {
-    if (event.key == "a") {
-      addPositionMapCenter();
-    }
-    if (event.key == "Escape" || event.key == "Backspace") {
-      removePositionButtonFunction();
-    }
-    if (event.key == "Delete") {
-      removePosition([window.innerWidth / 2, window.innerHeight / 2]);
-    }
-    if (event.key == "v") {
-      mapMode++;
-      if (mapMode > 4) {
-        mapMode = 0;
-      }
-      switchMap();
-    }
-  }
-});
-
 document.addEventListener("mouseup", function (event) {
   if (event.button == 1) {
     // middle mouse button
     var eventPixel = [event.clientX, event.clientY];
-    map.forEachFeatureAtPixel(eventPixel, function (feature, layer) {
-      if (feature.getGeometry().getType() == "Point") {
-        removePosition(eventPixel);
-      }
-    });
+    removePosition(eventPixel);
   }
 });
 
-map.on("pointermove", function (evt) {
-  var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature, layer) {
-    if (feature.get("routeFeature")) {
-      return true;
-    }
-  });
-  if (hit) {
-    this.getTargetElement().style.cursor = "pointer";
-  } else {
-    this.getTargetElement().style.cursor = "crosshair";
-  }
-});
 
 modifypoi.addEventListener("modifyend", function () {
   poiList = [];
