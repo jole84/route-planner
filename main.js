@@ -72,7 +72,12 @@ popupCloser.onclick = function () {
 savePoiNameButton.onclick = function () {
   const coordinate = toLonLat(poiCoordinate);
   var fileName = fileNameInput.value;
-  // poiList.push([coordinate, fileName]);
+  const poiMarker = new Feature({
+    routeFeature: true,
+    name: fileName,
+    geometry: new Point(poiCoordinate),
+  });
+  poiLayer.getSource().addFeature(poiMarker);
   overlay.setPosition(undefined);
   popupCloser.blur();
   return false;
@@ -209,7 +214,7 @@ var routeLineLayer = new VectorLayer({
 
 var trackLineLayer = new VectorLayer({
   source: new VectorSource({
-    // features: [trackLineFeature],
+    features: [trackLineFeature],
   }),
   style: function (feature) {
     return routeStyle[feature.get("type")];
@@ -218,7 +223,7 @@ var trackLineLayer = new VectorLayer({
 
 var trackPointsLayer = new VectorLayer({
   source: new VectorSource({
-    features: [trackLineFeature],
+    // features: [trackLineFeature],
   }),
   style: function (feature) {
     return routeStyle[feature.get("type")];
@@ -289,31 +294,39 @@ const map = new Map({
 const keyboardPan = new KeyboardPan({ pixelDelta: 64 });
 map.addInteraction(keyboardPan);
 
-const modify = new Modify({ source: trackPointsLayer.getSource() });
+const modifyTrackLine = new Modify({ source: trackLineLayer.getSource() });
 const modifypoi = new Modify({ source: poiLayer.getSource() });
 
-// trackLineFeature.on("change", function () {
-  // lineArray = trackLineFeature.getCoordinates();
-  // clearLayer(trackPoints);
-  // add markers at waypoints
-  // for (var i = 0; i < lineArray.length; i++) {
+trackPointsLayer.on("change", function () {
+  var trackPoints = [];
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    trackPoints.push(feature.getGeometry().getCoordinates());
+  })
+  trackLineString.setCoordinates(trackPoints);
+  // clearLayer(trackPointsLayer);
+  // trackLineFeature.getGeometry().getCoordinates().forEach(function (pointCoord) {
   //   const marker = new Feature({
   //     routeFeature: true,
-  //     name: i,
-  //     straight: lineArrayStraights[i] || false,
-  //     type: getPointType(i),
-  //     geometry: new Point(lineArray[i]),
+  //     name: trackPointsLayer.getSource().getFeatures().length,
+  //     straight: false,
+  //     type: getPointType(trackPointsLayer.getSource().getFeatures().length),
+  //     geometry: new Point(pointCoord),
   //   });
-  //   trackPoints.getSource().addFeature(marker);
-  // }
-// });
+  //   marker.setId(trackPointsLayer.getSource().getFeatures().length);
+  //   trackPointsLayer.getSource().addFeature(marker);
+  // })
 
-modify.on("modifyend", function () {
+  // clearLayer(trackPoints);
+  // add markers at waypoints
+});
+
+modifyTrackLine.on("modifyend", function () {
+  routeMe();
   // trackLineString.setCoordinates([]);
-  trackPointsLayer.getSource().forEachFeature(function (feature) {
-    console.log(feature.getGeometry().getCoordinates());
-    // trackLineString.appendCoordinate(feature.getGeometry().getCoordinates());
-  });
+  // trackPointsLayer.getSource().forEachFeature(function (feature) {
+  //   console.log(feature.getGeometry().getCoordinates());
+  //   trackLineString.appendCoordinate(feature.getGeometry().getCoordinates());
+  // });
 
 });
 
@@ -362,7 +375,7 @@ function savePoiPopup() {
   overlay.setPosition(poiCoordinate);
 }
 
-map.addInteraction(modify);
+map.addInteraction(modifyTrackLine);
 map.addInteraction(modifypoi);
 
 function addPositionMapCenter() {
@@ -370,7 +383,7 @@ function addPositionMapCenter() {
 }
 
 function removePositionButtonFunction() {
-  removePosition(map.getPixelFromCoordinate(lineArray[lineArray.length - 1]) || 0);
+  removePosition(map.getPixelFromCoordinate(view.getCenter()));
 }
 
 function addPosition(coordinate) {
@@ -380,41 +393,31 @@ function addPosition(coordinate) {
     routeFeature: true,
     name: trackPointsLayer.getSource().getFeatures().length,
     straight: false,
-    type: getPointType(0),
+    type: getPointType(trackPointsLayer.getSource().getFeatures().length),
     geometry: new Point(coordinate),
   });
   marker.setId(trackPointsLayer.getSource().getFeatures().length);
-
-  console.log(marker.getId(), marker.getProperties());
   trackPointsLayer.getSource().addFeature(marker);
+  routeMe();
 }
 
 function removePosition(pixel) {
-
-  var closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
   var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
-  console.log(getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())));
-  // console.log(getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())));
-
-  trackPointsLayer.getSource().removeFeature(closestTrackPoint);
-
-  console.log(trackLineString.getCoordinates())
+  var closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
+  
+  // remove trackPoint and redraw layer
+  if (closestTrackPoint != undefined) {
+    if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
+      trackPointsLayer.getSource().removeFeature(closestTrackPoint);
+    }
+  }
 
   // remove poi
-
-  // if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())) < 40) {
-  //   poiLayer.getSource().removeFeature(closestPoi);
-  // }
-  
-  // removes wp if less than 40 pixels
-  // if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
-  //   trackPoints.getSource().removeFeature(closestTrackPoint);
-  // }
-  // for (var i = 0; i < lineArray.length; i++) {
-  //   if (getPixelDistance(pixel, map.getPixelFromCoordinate(lineArray[i])) < 40) {
-  //     lineArray.splice(lineArray.indexOf(lineArray[i]), 1);
-  //   }
-  // }
+  if (closestPoi != undefined) {
+    if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())) < 40) {
+      poiLayer.getSource().removeFeature(closestPoi);
+    }
+  }
 
   // if only 1 wp, remove route and redraw startpoint
   // if (lineArray.length == 1) {
@@ -424,7 +427,6 @@ function removePosition(pixel) {
   //   info3Div.innerHTML = "";
   // }
 
-  // lineStringGeometry.setCoordinates(lineArray);
   // routeMe();
 }
 
@@ -455,13 +457,14 @@ map.on("singleclick", function (event) {
 });
 
 map.on("contextmenu", function (event) {
-  // map.forEachFeatureAtPixel(event.pixel, function (feature, layer) {
-  //   if (feature.getGeometry().getType() == "Point") {
-  //     feature.set("straight", !feature.get("straight")); // boolean switch
-  //   }
-  // });
-
-  // routeMe();
+  // change trackPoint straight value
+  var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(event.pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
+  if (closestTrackPoint != undefined) {
+    if (getPixelDistance(event.pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
+      closestTrackPoint.set("straight", !closestTrackPoint.get("straight"));
+    }
+  }
+  routeMe();
 });
 
 var centerCoordinate;
@@ -496,18 +499,29 @@ function clearLayer(layerToClear) {
 
 function routeMe() {
   var coordsString = [];
-  for (var i = 0; i < lineArray.length; i++) {
-    coordsString.push(toLonLat(lineArray[i]));
-  }
+  var straightPoints = []
+  trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
+    coordsString.push(toLonLat(coordinate));
+  });
+
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    console.log(feature.getId(), feature.get("straight"));
+    if (feature.get("straight")) {
+      straightPoints.push(feature.getId());
+    }
+  })
+
   var brouterUrl =
     "https://brouter.de/brouter" +
     "?lonlats=" +
     coordsString.join("|") +
     "&profile=car-fast&alternativeidx=0&format=geojson" +
     "&straight=" +
-    getStraightPoints();
+    straightPoints.join(",");
 
-  if (lineArray.length >= 2) {
+  console.log(brouterUrl);
+
+  if (trackPointsLayer.getSource().getFeatures().length >= 2) {
     fetch(brouterUrl).then(function (response) {
       response.json().then(function (result) {
         const route = new GeoJSON()
@@ -517,7 +531,7 @@ function routeMe() {
           })
           .getGeometry();
 
-        trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
+        const trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
         const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
 
         // add route information to info box
@@ -527,7 +541,7 @@ function routeMe() {
           new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
 
         const routeGeometry = new Feature({
-          type: "route",
+          type: "routeLine",
           geometry: route,
         });
 
@@ -538,13 +552,15 @@ function routeMe() {
         routeLineLayer.getSource().addFeature(routeGeometry);
       });
     });
+  } else {
+    clearLayer(routeLineLayer);
   }
 }
 
 function getPointType(i) {
   if (i == 0) {
     return "startPoint";
-  } else if (i == lineArray.length - 1) {
+  } else if (i == trackLineFeature.getGeometry().getCoordinates().length - 1) {
     return "endPoint";
   } else {
     return "midPoint";
@@ -552,49 +568,56 @@ function getPointType(i) {
 }
 
 function route2gpx() {
-  var poiString = [];
-  for (var i = 0; i < poiList.length; i++) {
-    poiString.push(poiList[i].join(","));
-  }
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    console.log(feature.getProperties())
+  });
+  poiLayer.getSource().forEachFeature(function (feature) {
+    console.log(feature.getProperties())
+  });
 
-  var coordsString = [];
-  for (var i = 0; i < lineArray.length; i++) {
-    coordsString.push(toLonLat(lineArray[i]));
-  }
+//   var poiString = [];
+//   for (var i = 0; i < poiList.length; i++) {
+//     poiString.push(poiList[i].join(","));
+//   }
 
-  if (lineArray.length >= 2) {
-    var brouterUrl =
-      "https://brouter.de/brouter?lonlats=" +
-      coordsString.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_" +
-      new Date().toLocaleDateString() +
-      "_" +
-      trackLength.toFixed(2) +
-      "km" +
-      "&straight=" +
-      getStraightPoints();
+//   var coordsString = [];
+//   for (var i = 0; i < lineArray.length; i++) {
+//     coordsString.push(toLonLat(lineArray[i]));
+//   }
 
-    if (poiList.length >= 1) {
-      brouterUrl += "&pois=" + poiString.join("|");
-    }
-    window.location = brouterUrl;
-  } else if (poiList.length >= 1) {
-    // simple gpx file if no route is created
-    let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="jole84 webapp">
-<metadata>
-  <desc>GPX log created by jole84 webapp</desc>
-</metadata>`;
+//   if (lineArray.length >= 2) {
+//     var brouterUrl =
+//       "https://brouter.de/brouter?lonlats=" +
+//       coordsString.join("|") +
+//       "&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_" +
+//       new Date().toLocaleDateString() +
+//       "_" +
+//       trackLength.toFixed(2) +
+//       "km" +
+//       "&straight=" +
+//       getStraightPoints();
 
-    for (var i = 0; i < poiList.length; i++) {
-      gpxFile += `
-  <wpt lat="${poiList[i][0][1]}" lon="${poiList[i][0][0]}"><name>${poiList[i][1]}</name></wpt>`;
-    }
+//     if (poiList.length >= 1) {
+//       brouterUrl += "&pois=" + poiString.join("|");
+//     }
+//     window.location = brouterUrl;
+//   } else if (poiList.length >= 1) {
+//     // simple gpx file if no route is created
+//     let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+// <gpx version="1.1" creator="jole84 webapp">
+// <metadata>
+//   <desc>GPX log created by jole84 webapp</desc>
+// </metadata>`;
 
-    gpxFile += `
-</gpx>`;
-    console.log(gpxFile);
-  }
+//     for (var i = 0; i < poiList.length; i++) {
+//       gpxFile += `
+//   <wpt lat="${poiList[i][0][1]}" lon="${poiList[i][0][0]}"><name>${poiList[i][1]}</name></wpt>`;
+//     }
+
+//     gpxFile += `
+// </gpx>`;
+//     console.log(gpxFile);
+//   }
 }
 
 // gpx loader
@@ -670,18 +693,11 @@ document.addEventListener("mouseup", function (event) {
     // middle mouse button
     var eventPixel = [event.clientX, event.clientY];
     removePosition(eventPixel);
+    routeMe();
   }
 });
 
 
 modifypoi.addEventListener("modifyend", function () {
-  poiList = [];
-  poiLayer
-    .getSource()
-    .getFeatures()
-    .forEach(function (feature) {
-      const fileName = feature.get("name");
-      const coordinate = toLonLat(feature.getGeometry().getCoordinates());
-      poiList.push([coordinate, fileName]);
-    });
+  console.log(poiLayer.getSource().getFeatures())
 });
