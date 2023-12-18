@@ -55,6 +55,7 @@ document.getElementById("showGPX").addEventListener("change", function () {
 document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("helpText").style.display = "none";
   document.getElementById("map").style.pointerEvents = "unset";
+  document.getElementById("map").style.filter = "unset";
 };
 
 const overlay = new Overlay({
