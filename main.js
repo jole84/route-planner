@@ -434,8 +434,15 @@ function updateInfo() {
     '" target="_blank">Gmap</a>';
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
 }
-
 updateInfo();
+
+function isTouchDevice() {
+  return (
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  );
+}
 
 function clearLayer(layerToClear) {
   layerToClear
@@ -634,14 +641,22 @@ function handleFileSelect(evt) {
   });
 }
 
-document.addEventListener("mouseup", function (event) {
-  if (event.button == 1) {
-    // middle mouse button
-    var eventPixel = [event.clientX, event.clientY];
-    removePosition(eventPixel);
-    routeMe();
+touchFriendlyCheck.addEventListener("change", function () {
+  if (touchFriendlyCheck.checked) {
+    map.removeInteraction(modifyTrackLine);
+    map.removeInteraction(modifypoi);
+  } else {
+    map.addInteraction(modifyTrackLine);
+    map.addInteraction(modifypoi);
   }
 });
+if (isTouchDevice()) {
+  touchFriendlyCheck.checked = true;
+} else {
+  document.getElementById("touchFriendly").style.display = "none";
+  map.addInteraction(modifyTrackLine);
+  map.addInteraction(modifypoi);
+}
 
 modifypoi.addEventListener("modifyend", function () {
   console.log(poiLayer.getSource().getFeatures())
@@ -688,6 +703,15 @@ map.on("contextmenu", function (event) {
     trackPointStraight[feature.getId()] = feature.get("straight");
   });
   routeMe();
+});
+
+document.addEventListener("mouseup", function (event) {
+  if (event.button == 1) {
+    // middle mouse button
+    var eventPixel = [event.clientX, event.clientY];
+    removePosition(eventPixel);
+    routeMe();
+  }
 });
 
 document.addEventListener("keydown", function (event) {
