@@ -58,6 +58,10 @@ document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("map").style.filter = "unset";
 };
 
+document.getElementById("help").onclick = function () {
+  document.getElementById("helpText").style.display = "unset";
+};
+
 const overlay = new Overlay({
   element: popupContainer,
   autoPan: {
@@ -655,6 +659,8 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
+  document.getElementById("addPositionButton").style.display = "none";
+  document.getElementById("removePositionButton").style.display = "none";
   map.addInteraction(modifyTrackLine);
   map.addInteraction(modifypoi);
 }
@@ -682,10 +688,7 @@ map.on("singleclick", function (event) {
     } else {
       if (event.originalEvent.shiftKey) {
         // if shift + click add offroad waypoint
-        // var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(event.coordinate, function (feature) { return feature.getGeometry().getType() == "Point" });
         trackPointStraight[trackLineFeature.getGeometry().getCoordinates().length] = true;
-        // trackLineFeature.getGeometry().getCoordinates().length - 1
-        closestTrackPoint.set("straight", true);
       }
       addPosition(event.coordinate);
     }
