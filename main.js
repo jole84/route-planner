@@ -307,7 +307,7 @@ trackLineString.addEventListener("change", function () {
 
   trackLineString.getCoordinates().forEach(function (coordinate) {
     const marker = new Feature({
-      routeFeature: true,
+      // routeFeature: true,
       // name: trackPointsLayer.getSource().getFeatures().length,
       straight: (trackPointStraight[trackPointsLayer.getSource().getFeatures().length] || false),
       type: getPointType(trackPointsLayer.getSource().getFeatures().length),
@@ -738,4 +738,19 @@ document.addEventListener("keydown", function (event) {
 
 view.on("change:center", function () {
   updateInfo();
+});
+
+map.on("pointermove", function (evt) {
+  var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature) {
+    if (feature.get("routeFeature")) {
+      return true;
+    }
+  }, {
+    hitTolerance: 5,
+  });
+  if (hit) {
+    this.getTargetElement().style.cursor = "pointer";
+  } else {
+    this.getTargetElement().style.cursor = "crosshair";
+  }
 });
