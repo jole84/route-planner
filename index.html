@@ -33,6 +33,7 @@
 
     #map {
       pointer-events: none;
+      filter: blur(5px) brightness(0.8);
     }
 
     .destinationButtons {
@@ -51,11 +52,34 @@
 
     .topRightDiv {
       position: absolute;
+      z-index: 10;
       bottom: 5px;
       left: 5px;
       -webkit-transition: scale 200ms;
       transition: scale 200ms;
       transform-origin: left bottom;
+    }
+
+    .infoGroup {
+      color: rgb(32, 32, 32);
+      backdrop-filter: blur(5px);
+      background-color: rgba(251, 251, 251, 0.6);
+      border: 1px solid rgb(32, 32, 32);
+      border-radius: 5px;
+      font-size: 1.1em;
+      letter-spacing: 1.3px;
+      line-height: 1.4;
+      z-index: 10;
+      word-wrap: break-word;
+      padding-right: 5px;
+      padding-left: 5px;
+      margin-bottom: 5px;
+    }
+
+    .optionButtons {
+      z-index: 10;
+      bottom: 5px;
+      left: 5px;
     }
 
     #helpText {
@@ -97,12 +121,6 @@
       }
     }
 
-    .optionButtons {
-      z-index: 10;
-      bottom: 5px;
-      left: 5px;
-    }
-
     #savePoiNameButton {
       margin-top: 12px;
     }
@@ -124,22 +142,6 @@
       /* height: 37px; */
       margin-bottom: 5px;
       /* max-width: 234px; */
-    }
-
-    .infoGroup {
-      color: rgb(32, 32, 32);
-      backdrop-filter: blur(5px);
-      background-color: rgba(251, 251, 251, 0.6);
-      border: 1px solid rgb(32, 32, 32);
-      border-radius: 5px;
-      font-size: 1.1em;
-      letter-spacing: 1.3px;
-      line-height: 1.4;
-      z-index: 10;
-      word-wrap: break-word;
-      padding-right: 5px;
-      padding-left: 5px;
-      margin-bottom: 5px;
     }
 
     #crosshair {
@@ -215,76 +217,79 @@
 
 <body oncontextmenu="return false;">
   <script type="module" src="./main.js"></script>
-  <div id="map"></div>
+  <div id="map">
 
-  <div class="destinationButtons" id="destinationButtons">
-    <div class="btn-group-vertical btn-group-lg" role="group">
-      <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-      <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
-    </div>
-    <br>
-    <button class="btn btn-danger" id="savePoiButton">spara<br>waypoint</button>
-  </div>
 
-  <div class="topRightDiv">
-
-    <div class="infoGroup" id="infoGroup">
-      <div id="coordsDiv"></div>
-      <div id="info"></div>
-      <div id="info2"></div>
-      <div id="info3"></div>
-      <div id="info4"></div>
-      <div id="touchFriendly" class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
-        <label class="form-check-label" for="touchFriendlyCheck">touch</label>
+    <div class="destinationButtons" id="destinationButtons">
+      <div class="btn-group-vertical btn-group-lg" role="group">
+        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
+        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
       </div>
-      <div id="showGPXdiv" class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="showGPX" checked />
-        <label class="form-check-label" for="showGPX">Visa GPX</label>
-      </div>
-    </div>
-
-    <div class="optionButtons">
-      <select class="form-select" id="layerSelector">
-        <option value="0">Jole84 Terrängkarta</option>
-        <option value="1">Jole84 Vägkarta</option>
-        <option value="2">Lantmäteriet Topo</option>
-        <option value="3">Lantmäteriet Orto</option>
-        <option value="4">OpenStreetMap</option>
-      </select>
       <br>
-      <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
-      <label><input type="file" class="form-control" id="customFileButton" multiple
-          accept=".gpx,application/gpx+xml" /></label>
+      <button class="btn btn-primary" id="help">hjälp</button>
+      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
     </div>
-  </div>
+    
+    <div class="topRightDiv">
 
-  <div id="popup" class="ol-popup">
-    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-    <div id="popup-content">Ange waypointnamn:</div>
-    <form id="fileNameForm">
-      <input type="submit" style="display: none" />
-      <input type="text" id="fileNameInput" class="form-control" />
-      <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</a>
-    </form>
-  </div>
+      <div class="infoGroup" id="infoGroup">
+        <div id="coordsDiv"></div>
+        <div id="info"></div>
+        <div id="info2"></div>
+        <div id="info3"></div>
+        <div id="info4"></div>
+        <div id="touchFriendly" class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
+          <label class="form-check-label" for="touchFriendlyCheck">touch</label>
+        </div>
+        <div id="showGPXdiv" class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="showGPX" checked />
+          <label class="form-check-label" for="showGPX">Visa GPX</label>
+        </div>
+      </div>
 
-  <svg version="1.1" height="60" width="60" id="crosshair" xmlns="http://www.w3.org/2000/svg"
-    xmlns:svg="http://www.w3.org/2000/svg">
-    <line x1="30" y1="0" x2="30" y2="27" style="stroke:rgb(255,0,0);stroke-width:4" id="line1" />
-    <line x1="0" y1="30" x2="27" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line2" />
-    <line x1="30" y1="33" x2="30" y2="60" style="stroke:rgb(255,0,0);stroke-width:4" id="line3" />
-    <line x1="33" y1="30" x2="60" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line4" />
-  </svg>
+      <div class="optionButtons">
+        <select class="form-select" id="layerSelector">
+          <option value="0">Jole84 Terrängkarta</option>
+          <option value="1">Jole84 Vägkarta</option>
+          <option value="2">Lantmäteriet Topo</option>
+          <option value="3">Lantmäteriet Orto</option>
+          <option value="4">OpenStreetMap</option>
+        </select>
+        <br>
+        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
+        <label><input type="file" class="form-control" id="customFileButton" multiple
+            accept=".gpx,application/gpx+xml" /></label>
+      </div>
+    </div>
+
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content">Ange waypointnamn:</div>
+      <form id="fileNameForm">
+        <input type="submit" style="display: none" />
+        <input type="text" id="fileNameInput" class="form-control" />
+        <a href="#" class="btn btn-primary" id="savePoiNameButton">Spara</a>
+      </form>
+    </div>
+
+    <svg version="1.1" height="60" width="60" id="crosshair" xmlns="http://www.w3.org/2000/svg"
+      xmlns:svg="http://www.w3.org/2000/svg">
+      <line x1="30" y1="0" x2="30" y2="27" style="stroke:rgb(255,0,0);stroke-width:4" id="line1" />
+      <line x1="0" y1="30" x2="27" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line2" />
+      <line x1="30" y1="33" x2="30" y2="60" style="stroke:rgb(255,0,0);stroke-width:4" id="line3" />
+      <line x1="33" y1="30" x2="60" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line4" />
+    </svg>
+  </div>
 
   <div id="helpText">
     <h1>Välkommen till Jole84 ruttplanerare!</h1>
     <b>Vänterklick:</b> lägg till waypoint<br>
-    <b>Alt + vänsterklick:</b> lägg till poi<br>
+    <b>Alt + vänsterklick:</b> lägg till POI<br>
     <b>Ctrl + vänsterklick:</b> öppna streetview<br>
     <b>Shift + vänsterklick:</b> lägg till offroad waypoint<br>
     <b>Mittknapp:</b> ta bort waypoint<br>
-    <b>Högerklick:</b> byt waypoint till offroad<br>
+    <b>Högerklick:</b> växla waypoint till offroad<br>
     <b>Backspace:</b> ta bort sista waypoint<br>
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
