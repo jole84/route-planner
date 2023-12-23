@@ -307,7 +307,7 @@ modifyTrackLine.on("modifyend", function () {
 });
 
 trackLineString.addEventListener("change", function () {
-  clearLayer(trackPointsLayer);
+  trackPointsLayer.getSource().clear();
 
   trackLineString.getCoordinates().forEach(function (coordinate) {
     const marker = new Feature({
@@ -417,7 +417,7 @@ function removePosition(pixel) {
 
   // if only 1 wp, remove route and redraw startpoint
   if (trackPointsLayer.getSource().getFeatures().length == 1) {
-    clearLayer(routeLineLayer);
+    routeLineLayer.getSource().clear();
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
@@ -447,15 +447,6 @@ function isTouchDevice() {
     navigator.maxTouchPoints > 0 ||
     navigator.msMaxTouchPoints > 0
   );
-}
-
-function clearLayer(layerToClear) {
-  layerToClear
-    .getSource()
-    .getFeatures()
-    .forEach(function (feature) {
-      layerToClear.getSource().removeFeature(feature);
-    });
 }
 
 function routeMe() {
@@ -504,14 +495,14 @@ function routeMe() {
         });
 
         // remove previus route
-        clearLayer(routeLineLayer);
+        routeLineLayer.getSource().clear();
 
         // finally add route to map
         routeLineLayer.getSource().addFeature(routeGeometry);
       });
     });
   } else {
-    clearLayer(routeLineLayer);
+    routeLineLayer.getSource().clear();
   }
 }
 
@@ -583,7 +574,7 @@ function handleFileSelect(evt) {
   showGPXdiv.style.display = "inline-block";
   var files = evt.target.files; // FileList object
   // remove previously loaded gpx files
-  clearLayer(gpxLayer);
+  gpxLayer.getSource().clear();
   for (var i = 0; i < files.length; i++) {
     var reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
