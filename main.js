@@ -5,6 +5,7 @@ import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
+import { saveAs } from 'file-saver';
 import GeoJSON from "ol/format/GeoJSON.js";
 import GPX from "ol/format/GPX.js";
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
@@ -555,7 +556,10 @@ function route2gpx() {
 
     gpxFile += `
 </gpx>`;
-    console.log(gpxFile);
+    var file = new Blob([gpxFile], { type: "application/gpx+xml" });
+    var filename = "Rutt_" + new Date().toLocaleString().replace(" ", "_") + ".gpx";
+    console.log(gpxFile, filename);
+    saveAs(file, filename);
   }
 }
 
