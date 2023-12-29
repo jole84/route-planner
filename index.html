@@ -36,12 +36,13 @@
       filter: blur(5px) brightness(0.8);
     }
 
-    .destinationButtons {
+    .lowerRightGroup {
       position: absolute;
       z-index: 10;
       bottom: 5px;
       right: 5px;
       text-align: right;
+      max-width: 75%;
     }
 
     .btn-group-lg {
@@ -50,7 +51,7 @@
         min-height: 150px; */
     }
 
-    .topRightDiv {
+    .lowerLeftGroup {
       position: absolute;
       z-index: 10;
       bottom: 5px;
@@ -58,6 +59,8 @@
       -webkit-transition: scale 200ms;
       transition: scale 200ms;
       transform-origin: left bottom;
+      max-width: 50%;
+      word-wrap: break-word;
     }
 
     .infoGroup {
@@ -76,7 +79,7 @@
       margin-bottom: 5px;
     }
 
-    .optionButtons {
+    .optionGroup {
       z-index: 10;
       bottom: 5px;
       left: 5px;
@@ -84,6 +87,7 @@
 
     #helpText {
       position: absolute;
+      min-width: 350px;
       left: 50%;
       top: 50%;
       color: rgb(32, 32, 32);
@@ -106,14 +110,14 @@
     }
 
     @media only screen and (max-width: 600px) {
-      .infoGroup {
+      .lowerLeftGroup {
         -webkit-transition: scale 200ms;
         transition: scale 200ms;
         transform-origin: left bottom;
         scale: 0.5;
       }
 
-      .topRightDiv:hover .infoGroup {
+      .lowerLeftGroup:hover {
         -webkit-transition: scale 200ms;
         transition: scale 200ms;
         display: inline-block;
@@ -220,7 +224,7 @@
   <div id="map">
 
 
-    <div class="destinationButtons" id="destinationButtons">
+    <div class="lowerRightGroup" id="lowerRightGroup">
       <div class="btn-group-vertical btn-group-lg" role="group">
         <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
         <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
@@ -230,8 +234,7 @@
       <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
     </div>
     
-    <div class="topRightDiv">
-
+    <div class="lowerLeftGroup">
       <div class="infoGroup" id="infoGroup">
         <div id="coordsDiv"></div>
         <div id="info"></div>
@@ -247,8 +250,7 @@
           <label class="form-check-label" for="showGPX">Visa GPX</label>
         </div>
       </div>
-
-      <div class="optionButtons">
+      <div class="optionGroup">
         <select class="form-select" id="layerSelector">
           <option value="0">Jole84 Terrängkarta</option>
           <option value="1">Jole84 Vägkarta</option>

@@ -300,8 +300,6 @@ const map = new Map({
 });
 
 map.addInteraction(keyboardPan);
-map.addInteraction(modifyTrackLine);
-map.addInteraction(modifypoi);
 
 modifyTrackLine.on("modifyend", function () {
     routeMe();
