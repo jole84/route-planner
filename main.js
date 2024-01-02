@@ -401,9 +401,13 @@ function removePosition(pixel) {
       trackPointsLayer.getSource().removeFeature(closestTrackPoint);
     }
     var trackPoints = [];
-    trackPointsLayer.getSource().forEachFeature(function (feature) {
-      trackPoints.push(feature.getGeometry().getCoordinates());
-    })
+    for (var i = 0; i < trackPointsLayer.getSource().getFeatures().length + 1; i++) {
+      try {
+        trackPoints.push(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates());
+      } catch {
+        console.log(i, " is removed!");
+      }
+    }
     trackLineString.setCoordinates(trackPoints);
   }
 
