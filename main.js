@@ -608,8 +608,6 @@ function handleFileSelect(evt) {
               text: new Text({
                 text: f.get("name"),
                 font: "bold 14px Roboto,monospace",
-                placement: "line",
-                repeat: 1000,
                 fill: new Fill({
                   color: color,
                 }),
@@ -754,3 +752,16 @@ map.on("pointermove", function (evt) {
     this.getTargetElement().style.cursor = "crosshair";
   }
 });
+
+function getPlaceName([lon, lat]) {
+  let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+  var textString;
+
+  fetch(url).then( ( response) => {
+    response.json().then( (result) => {
+      textString = result.address.village || result.address.city || result.address.town || result.display_name;
+      info3Div.innerHTML = textString;
+    });
+  });
+  return textString;
+}
