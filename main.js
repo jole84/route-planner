@@ -99,6 +99,7 @@ var slitlagerkarta = new TileLayer({
     maxZoom: 14,
   }),
   maxZoom: 15.5,
+  useInterimTilesOnError: false,
 });
 
 var slitlagerkarta_nedtonad = new TileLayer({
@@ -109,6 +110,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
   }),
   maxZoom: 15.5,
   visible: false,
+  useInterimTilesOnError: false,
 });
 
 var ortofoto = new TileLayer({
@@ -302,7 +304,7 @@ const map = new Map({
 map.addInteraction(keyboardPan);
 
 modifyTrackLine.on("modifyend", function () {
-    routeMe();
+  routeMe();
 });
 
 trackLineString.addEventListener("change", function () {
@@ -353,7 +355,7 @@ function switchMap() {
   }
 }
 
-function getPixelDistance (pixel, pixel2) {
+function getPixelDistance(pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
 }
 
@@ -394,7 +396,7 @@ function addPosition(coordinate) {
 function removePosition(pixel) {
   var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
   var closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
-  
+
   // remove trackPoint and redraw layer
   if (closestTrackPoint != undefined) {
     if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
@@ -757,8 +759,8 @@ function getPlaceName([lon, lat]) {
   let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
   var textString;
 
-  fetch(url).then( ( response) => {
-    response.json().then( (result) => {
+  fetch(url).then((response) => {
+    response.json().then((result) => {
       textString = result.address.village || result.address.city || result.address.town || result.display_name;
       info3Div.innerHTML = textString;
     });
