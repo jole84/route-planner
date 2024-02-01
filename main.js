@@ -609,6 +609,8 @@ function handleFileSelect(evt) {
               }),
               text: new Text({
                 text: f.get("name"),
+                placement: "line",
+                repeat: 500,
                 font: "bold 14px Roboto,monospace",
                 fill: new Fill({
                   color: color,
