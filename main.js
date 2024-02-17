@@ -53,6 +53,10 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 
+document.getElementById("clickFileButton").onclick = function () {
+  customFileButton.click();
+}
+
 document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("helpText").style.display = "none";
   document.getElementById("map").style.pointerEvents = "unset";
