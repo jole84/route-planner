@@ -743,9 +743,14 @@ document.addEventListener("keydown", function (event) {
       switchMap();
     }
   }
-  if (overlay.getPosition() != undefined && event.key == "Enter") {
-    event.preventDefault();
-    savePoiNameButton.click();
+  if (overlay.getPosition() != undefined) {
+    if (event.key == "Enter") {
+      event.preventDefault();
+      savePoiNameButton.click();
+    }
+    if (event.key == "Escape") {
+      popupCloser.click();
+    }
   }
 });
 
