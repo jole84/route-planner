@@ -740,6 +740,10 @@ document.addEventListener("keydown", function (event) {
       switchMap();
     }
   }
+  if (overlay.getPosition() != undefined && event.key == "Enter") {
+    event.preventDefault();
+    savePoiNameButton.click();
+  }
 });
 
 view.on("change:center", function () {
@@ -773,3 +777,50 @@ function getPlaceName([lon, lat]) {
   });
   return textString;
 }
+
+// save features to localStorage on exit
+window.onbeforeunload = function () {
+  var trackPoints = [];
+  var poiString = [];
+
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    trackPoints.push([feature.getGeometry().getCoordinates(), feature.get("straight")]);
+  });
+
+  poiLayer.getSource().forEachFeature(function (feature) {
+    poiString.push([feature.getGeometry().getCoordinates(), feature.get("name")]);
+  });
+
+  localStorage.trackPoints = JSON.stringify(trackPoints);
+  localStorage.poiString = JSON.stringify(poiString);
+}
+
+// load features from localStorage
+JSON.parse(localStorage.trackPoints).forEach(function (element, index) {
+  trackPointStraight[index] = element[1];
+  trackLineString.appendCoordinate(element[0]);
+  if (index == JSON.parse(localStorage.trackPoints).length - 1) {
+    routeMe();
+  }
+});
+
+JSON.parse(localStorage.poiString).forEach(function (element) {
+  const coordinate = element[0];
+  var fileName = element[1];
+  const poiMarker = new Feature({
+    routeFeature: true,
+    name: fileName,
+    geometry: new Point(coordinate),
+  });
+  poiLayer.getSource().addFeature(poiMarker);
+});
+
+document.getElementById("clearMapButton").addEventListener("click", function () {
+  trackPointStraight = {};
+  trackPointsLayer.getSource().clear();
+  poiLayer.getSource().clear();
+  trackLineString.setCoordinates([]);
+  routeLineLayer.getSource().clear();
+  gpxLayer.getSource().clear();
+  showGPXdiv.style.display = "none";
+});
