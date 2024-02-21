@@ -371,6 +371,7 @@ function savePoiPopup() {
     5,
   ).replace(",", "");
   overlay.setPosition(poiCoordinate);
+  fileNameInput.focus();
 }
 
 function addPositionMapCenter() {
@@ -721,6 +722,14 @@ document.addEventListener("mouseup", function (event) {
   }
 });
 
+document.addEventListener("keyup", function (event) {
+  if (!overlay.getPosition()) {
+    if (event.key == "p") {
+      savePoiPopup();
+    }
+  }
+});
+
 document.addEventListener("keydown", function (event) {
   if (!overlay.getPosition()) {
     if (event.key == "a") {
@@ -731,9 +740,6 @@ document.addEventListener("keydown", function (event) {
     }
     if (event.key == "Backspace") {
       removePosition(map.getPixelFromCoordinate(trackLineString.getLastCoordinate()));
-    }
-    if (event.key == "p") {
-      savePoiPopup();
     }
     if (event.key == "v") {
       mapMode++;
