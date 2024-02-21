@@ -732,6 +732,9 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "Backspace") {
       removePosition(map.getPixelFromCoordinate(trackLineString.getLastCoordinate()));
     }
+    if (event.key == "p") {
+      savePoiPopup();
+    }
     if (event.key == "v") {
       mapMode++;
       if (mapMode > 4) {
