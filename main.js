@@ -731,6 +731,9 @@ document.addEventListener("keyup", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
+  if (document.getElementById("helpText").style.display != "none" && event.key == "Enter") {
+    document.getElementById("helpTextOk").click();
+  }
   if (!overlay.getPosition()) {
     if (event.key == "a") {
       addPositionMapCenter();
