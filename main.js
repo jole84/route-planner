@@ -313,19 +313,16 @@ modifyTrackLine.on("modifyend", function () {
 
 trackLineString.addEventListener("change", function () {
   trackPointsLayer.getSource().clear();
-
-  trackLineString.getCoordinates().forEach(function (coordinate) {
+  for (var i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
-      // routeFeature: true,
-      // name: trackPointsLayer.getSource().getFeatures().length,
-      straight: (trackPointStraight[trackPointsLayer.getSource().getFeatures().length] || false),
-      type: getPointType(trackPointsLayer.getSource().getFeatures().length),
-      geometry: new Point(coordinate),
+      straight: (trackPointStraight[i] || false),
+      type: getPointType(i),
+      geometry: new Point(trackLineString.getCoordinates()[i]),
     });
-    marker.setId(trackPointsLayer.getSource().getFeatures().length);
+    marker.setId(i);
     trackPointsLayer.getSource().addFeature(marker);
-  })
-})
+  }
+});
 
 layerSelector.addEventListener("change", function () {
   mapMode = layerSelector.value;
@@ -384,17 +381,6 @@ function removePositionButtonFunction() {
 
 function addPosition(coordinate) {
   trackLineString.appendCoordinate(coordinate);
-
-  // const marker = new Feature({
-  //   routeFeature: true,
-  //   name: trackPointsLayer.getSource().getFeatures().length,
-  //   straight: false,
-  //   type: getPointType(trackPointsLayer.getSource().getFeatures().length),
-  //   geometry: new Point(coordinate),
-  // });
-  // marker.setId(trackPointsLayer.getSource().getFeatures().length);
-  // trackPointsLayer.getSource().addFeature(marker);
-
   routeMe();
 }
 
@@ -800,9 +786,12 @@ window.onbeforeunload = function () {
   var trackPoints = [];
   var poiString = [];
 
-  trackPointsLayer.getSource().forEachFeature(function (feature) {
-    trackPoints.push([feature.getGeometry().getCoordinates(), feature.get("straight")]);
-  });
+  for (var i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
+    trackPoints.push([
+      trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates(),
+      trackPointsLayer.getSource().getFeatureById(i).get("straight")
+    ])
+  }
 
   poiLayer.getSource().forEachFeature(function (feature) {
     poiString.push([feature.getGeometry().getCoordinates(), feature.get("name")]);
