@@ -32,7 +32,7 @@ var info3Div = document.getElementById("info3");
 var info4Div = document.getElementById("info4");
 var infoDiv = document.getElementById("info");
 var layerSelector = document.getElementById("layerSelector");
-var mapMode = 0; // default map
+localStorage.routePlannerMapMode = localStorage.routePlannerMapMode || 0; // default map
 var poiCoordinate;
 var removePositionButton = document.getElementById("removePositionButton");
 var savePoiButton = document.getElementById("savePoiButton");
@@ -325,36 +325,39 @@ trackLineString.addEventListener("change", function () {
 });
 
 layerSelector.addEventListener("change", function () {
-  mapMode = layerSelector.value;
+  localStorage.routePlannerMapMode = layerSelector.value;
   switchMap();
 });
 
 function switchMap() {
-  layerSelector.value = mapMode;
+  layerSelector.value = localStorage.routePlannerMapMode;
   slitlagerkarta.setVisible(false);
   slitlagerkarta_nedtonad.setVisible(false);
   ortofoto.setVisible(false);
   topoweb.setVisible(false);
   osm.setVisible(false);
+  lowerRightGroup.style.bottom = "5px";
 
-  if (mapMode == 0) {
+  if (localStorage.routePlannerMapMode == 0) {
     slitlagerkarta.setVisible(true);
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(15.5);
-  } else if (mapMode == 1) {
+  } else if (localStorage.routePlannerMapMode == 1) {
     slitlagerkarta_nedtonad.setVisible(true);
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(15.5);
-  } else if (mapMode == 2) {
+  } else if (localStorage.routePlannerMapMode == 2) {
     topoweb.setVisible(true);
-  } else if (mapMode == 3) {
+  } else if (localStorage.routePlannerMapMode == 3) {
     ortofoto.setVisible(true);
     ortofoto.setMinZoom(1);
     ortofoto.setMaxZoom(20);
-  } else if (mapMode == 4) {
+  } else if (localStorage.routePlannerMapMode == 4) {
+    lowerRightGroup.style.bottom = "25px";
     osm.setVisible(true);
   }
 }
+switchMap();
 
 function getPixelDistance(pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
@@ -731,9 +734,9 @@ document.addEventListener("keydown", function (event) {
       removePosition(map.getPixelFromCoordinate(trackLineString.getLastCoordinate()));
     }
     if (event.key == "v") {
-      mapMode++;
-      if (mapMode > 4) {
-        mapMode = 0;
+      localStorage.routePlannerMapMode++;
+      if (localStorage.routePlannerMapMode > 4) {
+        localStorage.routePlannerMapMode = 0;
       }
       switchMap();
     }

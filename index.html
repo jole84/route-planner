@@ -93,11 +93,11 @@
     #helpText {
       position: absolute;
       min-width: 350px;
+      max-height: 100%;
       left: 50%;
       top: 50%;
       color: rgb(32, 32, 32);
-      backdrop-filter: blur(5px);
-      background-color: rgba(251, 251, 251, 0.8);
+      background-color: rgba(251, 251, 251, 1);
       border: 1px solid rgb(32, 32, 32);
       border-radius: 5px;
       z-index: 10;
@@ -105,6 +105,7 @@
       padding: 10px;
       -ms-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
+      overflow: auto;
     }
 
     #helpTextOk {
@@ -288,14 +289,14 @@
   </div>
 
   <div id="helpText">
-    <h1>Välkommen till Jole84 ruttplanerare!</h1>
-    <b>Vänterklick:</b> lägg till waypoint<br>
-    <b>Alt + vänsterklick:</b> lägg till POI<br>
-    <b>Ctrl + vänsterklick:</b> öppna streetview<br>
-    <b>Shift + vänsterklick:</b> lägg till offroad waypoint<br>
-    <b>Mittknapp:</b> ta bort waypoint<br>
-    <b>Högerklick:</b> växla waypoint till offroad<br>
-    <b>Backspace:</b> ta bort sista waypoint<br>
+    <h2>Välkommen till Jole84 ruttplanerare!</h2>
+    <kbd>Vänterklick</kbd> lägg till waypoint<br>
+    <kbd>Mittklick</kbd> ta bort waypoint<br>
+    <kbd>Högerklick</kbd> växla waypoint till offroad<br>
+    <kbd>Alt + vänsterklick</kbd> lägg till POI<br>
+    <kbd>Ctrl + vänsterklick</kbd> öppna streetview<br>
+    <kbd>Shift + vänsterklick</kbd> lägg till offroad waypoint<br>
+    <kbd>Backspace</kbd> ta bort sista waypoint<br>
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
   <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;" />
