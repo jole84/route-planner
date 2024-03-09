@@ -22,7 +22,6 @@ import XYZ from "ol/source/XYZ.js";
 const popupCloser = document.getElementById("popup-closer");
 const popupContainer = document.getElementById("popup");
 var addPositionButton = document.getElementById("addPositionButton");
-var centerCoordinate;
 var coordsDiv = document.getElementById("coordsDiv");
 var fileNameInput = document.getElementById("fileNameInput");
 var gpxFeatures;
@@ -32,6 +31,10 @@ var info3Div = document.getElementById("info3");
 var info4Div = document.getElementById("info4");
 var infoDiv = document.getElementById("info");
 var layerSelector = document.getElementById("layerSelector");
+var defaultCenter = [1700000,9000000];
+var defaultZoom = 5;
+localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
+localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
 localStorage.routePlannerMapMode = localStorage.routePlannerMapMode || 0; // default map
 var poiCoordinate;
 var removePositionButton = document.getElementById("removePositionButton");
@@ -275,8 +278,8 @@ var gpxLayer = new VectorLayer({
 });
 
 const view = new View({
-  center: [1579748.5038203455, 7924318.181076467],
-  zoom: 10,
+  center: JSON.parse(localStorage.centerCoordinate),
+  zoom: JSON.parse(localStorage.centerZoom),
   minZoom: 3,
   maxZoom: 20,
   enableRotation: false,
@@ -426,7 +429,7 @@ function removePosition(pixel) {
 }
 
 function updateInfo() {
-  centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
+  var centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
   coordsDiv.innerHTML = toStringXY(centerCoordinate, 5);
   var streetviewlink =
     '<a href="http://maps.google.com/maps?q=&layer=c&cbll=' +
@@ -720,7 +723,7 @@ document.addEventListener("keyup", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
-  if (document.getElementById("helpText").style.display != "none" && event.key == "Enter") {
+  if (document.getElementById("helpText").style.display != "none" && (event.key == "Enter" || event.key == "Escape")) {
     document.getElementById("helpTextOk").click();
   }
   if (!overlay.getPosition()) {
@@ -786,6 +789,9 @@ function getPlaceName([lon, lat]) {
 
 // save features to localStorage on exit
 window.onbeforeunload = function () {
+  localStorage.centerCoordinate = JSON.stringify(view.getCenter());
+  localStorage.centerZoom = view.getZoom();
+
   var trackPoints = [];
   var poiString = [];
 
@@ -825,6 +831,10 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
 });
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
+  // localStorage.removeItem("centerCoordinate");  
+  // localStorage.removeItem("centerZoom");
+  // view.setCenter(defaultCenter);
+  // view.setZoom(defaultZoom);
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
   poiLayer.getSource().clear();
