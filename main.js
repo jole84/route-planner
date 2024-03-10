@@ -31,7 +31,7 @@ var info3Div = document.getElementById("info3");
 var info4Div = document.getElementById("info4");
 var infoDiv = document.getElementById("info");
 var layerSelector = document.getElementById("layerSelector");
-var defaultCenter = [1700000,9000000];
+var defaultCenter = [1700000,8500000];
 var defaultZoom = 5;
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
 localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
@@ -831,10 +831,6 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
 });
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
-  // localStorage.removeItem("centerCoordinate");  
-  // localStorage.removeItem("centerZoom");
-  // view.setCenter(defaultCenter);
-  // view.setZoom(defaultZoom);
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
   poiLayer.getSource().clear();
