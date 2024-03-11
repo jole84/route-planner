@@ -31,7 +31,7 @@ var info3Div = document.getElementById("info3");
 var info4Div = document.getElementById("info4");
 var infoDiv = document.getElementById("info");
 var layerSelector = document.getElementById("layerSelector");
-var defaultCenter = [1700000,8500000];
+var defaultCenter = [1700000, 8500000];
 var defaultZoom = 5;
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
 localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
@@ -375,6 +375,7 @@ function savePoiPopup() {
   ).replace(",", "");
   overlay.setPosition(poiCoordinate);
   fileNameInput.focus();
+  fileNameInput.select();
 }
 
 function addPositionMapCenter() {
@@ -637,6 +638,7 @@ function handleFileSelect(evt) {
       view.fit(gpxLayer.getSource().getExtent(), {
         padding: [padding, padding, padding, padding],
         duration: 500,
+        maxZoom: 15,
       });
     }
   });
