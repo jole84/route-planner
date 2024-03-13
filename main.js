@@ -674,7 +674,7 @@ function gpxToRoute() {
 
   gpxLayer.getSource().forEachFeature(function (element) {
     if (element.getGeometry().getType() === "MultiLineString") {
-      element.getGeometry().simplify(1000).getCoordinates()[0].forEach(function (coordinate) {
+      element.getGeometry().simplify(500).getCoordinates()[0].forEach(function (coordinate) {
         trackLineString.appendCoordinate(coordinate);
       });
       routeMe();
