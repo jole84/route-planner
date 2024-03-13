@@ -46,6 +46,7 @@ var touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
 var trackLength;
 var trackPointStraight = {};
 
+document.getElementById("gpxToRouteButton").addEventListener("click", gpxToRoute);
 addPositionButton.onclick = addPositionMapCenter;
 customFileButton.addEventListener("change", handleFileSelect, false);
 removePositionButton.onclick = removePositionButtonFunction;
@@ -665,6 +666,24 @@ if (isTouchDevice()) {
 modifypoi.addEventListener("modifyend", function () {
   console.log(poiLayer.getSource().getFeatures())
 });
+
+function gpxToRoute() {
+  // convert loaded gpx track to route
+  trackPointStraight = {};
+  trackLineString.setCoordinates([]);
+
+  gpxLayer.getSource().forEachFeature(function (element) {
+    if (element.getGeometry().getType() === "MultiLineString") {
+      element.getGeometry().simplify(1000).getCoordinates()[0].forEach(function (coordinate) {
+        trackLineString.appendCoordinate(coordinate);
+      });
+      routeMe();
+    }
+    if (element.getGeometry().getType() === "Point") {
+      poiLayer.getSource().addFeature(element);
+    }
+  });
+}
 
 map.on("singleclick", function (event) {
   if (!touchFriendlyCheck.checked) {
