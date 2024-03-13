@@ -374,7 +374,6 @@ function savePoiPopup() {
     5,
   ).replace(",", "");
   overlay.setPosition(poiCoordinate);
-  fileNameInput.focus();
   fileNameInput.select();
 }
 
@@ -677,6 +676,7 @@ map.on("singleclick", function (event) {
         toLonLat(poiCoordinate).reverse(),
         5,
       ).replace(",", "");
+      fileNameInput.select();
     } else if (event.originalEvent.ctrlKey) {
       var coordinate = toLonLat(event.coordinate).reverse();
       window.open(
