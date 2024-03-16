@@ -680,7 +680,12 @@ function gpxToRoute() {
       routeMe();
     }
     if (element.getGeometry().getType() === "Point") {
-      poiLayer.getSource().addFeature(element);
+      const poiMarker = new Feature({
+        routeFeature: true,
+        name: element.get("name"),
+        geometry: new Point(element.getGeometry().getCoordinates()),
+      });
+      poiLayer.getSource().addFeature(poiMarker);
     }
   });
 }
