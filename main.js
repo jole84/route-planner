@@ -589,9 +589,12 @@ function getPointType(i) {
   }
 }
 
+gpxLayer.getSource().addEventListener("addfeature", function () {
+  showGPXdiv.style.display = "inline-block";
+})
+
 // gpx loader
 function handleFileSelect(evt) {
-  showGPXdiv.style.display = "inline-block";
   const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   gpxLayer.getSource().clear();
@@ -654,6 +657,21 @@ function handleFileSelect(evt) {
         duration: 500,
         maxZoom: 15,
       });
+    }
+  });
+}
+
+if ("launchQueue" in window) {
+  launchQueue.setConsumer(async (launchParams) => {
+    for (const file of launchParams.files) {
+      // load file 
+      const f = await file.getFile();
+      const content = await f.text();
+      const gpxFeatures = new GPX().readFeatures(content, {
+        dataProjection: "EPSG:4326",
+        featureProjection: "EPSG:3857",
+      });
+      gpxLayer.getSource().addFeatures(gpxFeatures);
     }
   });
 }
