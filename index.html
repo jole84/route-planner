@@ -95,7 +95,7 @@
       left: 5px;
     }
 
-    #helpText {
+    .textBox {
       position: absolute;
       min-width: 350px;
       max-width: 550px;
@@ -115,6 +115,14 @@
     }
 
     #helpTextOk {
+      float: right;
+    }
+
+    #gpxFileNameInput {
+      display: none;
+    }
+
+    #gpxFileNameInputOk {
       float: right;
     }
 
@@ -270,7 +278,7 @@
           <option value="4">OpenStreetMap</option>
         </select>
         <br>
-        <button class="btn btn-warning" id="saveRouteButton">Exportera Rutt</button>
+        <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
         <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
         <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
       </div>
@@ -295,7 +303,7 @@
     </svg>
   </div>
 
-  <div id="helpText">
+  <div class="textBox" id="helpText">
     <h2>Välkommen till Jole84 ruttplanerare!</h2>
     <p><img src="https://jole84.se/84.svg" height="30"> Jole84 ruttplanerare med <a
         href="https://github.com/jole84/route-planner">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet
@@ -308,6 +316,13 @@
     <kbd>Shift + vänsterklick</kbd> lägg till offroad waypoint<br>
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
     <button class="btn btn-primary" id="helpTextOk">OK</button>
+  </div>
+
+  <div class="textBox" id="gpxFileNameInput">
+    <p>Ange filnamn:</p>
+    <input class="form-control" id="gpxFileName" type="text" /><br>
+    <button class="btn btn-danger" id="gpxFileNameInputCancel">Avbryt</button>
+    <button class="btn btn-primary" id="gpxFileNameInputOk">OK</button>
   </div>
   <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;" />
 

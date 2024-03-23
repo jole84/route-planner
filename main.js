@@ -1,11 +1,11 @@
 import "./style.css";
 import { Feature, Map, View } from "ol";
 import { Modify } from "ol/interaction.js";
+import { saveAs } from 'file-saver';
 import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
-import { saveAs } from 'file-saver';
 import GeoJSON from "ol/format/GeoJSON.js";
 import GPX from "ol/format/GPX.js";
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
@@ -19,39 +19,57 @@ import VectorSource from "ol/source/Vector.js";
 import XYZ from "ol/source/XYZ.js";
 
 // const popupContent = document.getElementById('popup-content');
+const addPositionButton = document.getElementById("addPositionButton");
+const coordsDiv = document.getElementById("coordsDiv");
+const defaultCenter = [1700000, 8500000];
+const defaultZoom = 5;
+const fileNameInput = document.getElementById("fileNameInput");
+const gpxFormat = new GPX();
+const info2Div = document.getElementById("info2");
+const info3Div = document.getElementById("info3");
+const info4Div = document.getElementById("info4");
+const infoDiv = document.getElementById("info");
+const layerSelector = document.getElementById("layerSelector");
 const popupCloser = document.getElementById("popup-closer");
 const popupContainer = document.getElementById("popup");
-var addPositionButton = document.getElementById("addPositionButton");
-var coordsDiv = document.getElementById("coordsDiv");
-var fileNameInput = document.getElementById("fileNameInput");
-var gpxFeatures;
-var gpxFormat = new GPX();
-var info2Div = document.getElementById("info2");
-var info3Div = document.getElementById("info3");
-var info4Div = document.getElementById("info4");
-var infoDiv = document.getElementById("info");
-var layerSelector = document.getElementById("layerSelector");
-var defaultCenter = [1700000, 8500000];
-var defaultZoom = 5;
+const removePositionButton = document.getElementById("removePositionButton");
+const savePoiButton = document.getElementById("savePoiButton");
+const savePoiNameButton = document.getElementById("savePoiNameButton");
+const exportRouteButton = document.getElementById("exportRouteButton");
+const showGPXdiv = document.getElementById("showGPXdiv");
+const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
+let poiCoordinate;
+let gpxFileName;
+let trackLength;
+let trackPointStraight = {};
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
 localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
 localStorage.routePlannerMapMode = localStorage.routePlannerMapMode || 0; // default map
-var poiCoordinate;
-var removePositionButton = document.getElementById("removePositionButton");
-var savePoiButton = document.getElementById("savePoiButton");
-var savePoiNameButton = document.getElementById("savePoiNameButton");
-var saveRouteButton = document.getElementById("saveRouteButton");
-var showGPXdiv = document.getElementById("showGPXdiv");
-var touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
-var trackLength;
-var trackPointStraight = {};
 
 document.getElementById("gpxToRouteButton").addEventListener("click", gpxToRoute);
-addPositionButton.onclick = addPositionMapCenter;
 customFileButton.addEventListener("change", handleFileSelect, false);
+addPositionButton.onclick = addPositionMapCenter;
 removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
-saveRouteButton.onclick = route2gpx;
+// exportRouteButton.onclick = route2gpx;
+
+exportRouteButton.onclick = function () {
+  gpxFileName = gpxFileName ? gpxFileName : "Rutt_" + new Date().toLocaleString().replace(" ", "_");
+  document.getElementById("gpxFileName").placeholder = gpxFileName;
+  document.getElementById("gpxFileNameInput").style.display = "unset";
+  document.getElementById("gpxFileName").select();
+}
+
+document.getElementById("gpxFileNameInputOk").onclick = function () {
+  gpxFileName = encodeURI(document.getElementById("gpxFileName").value ? document.getElementById("gpxFileName").value.replace(" ", "_") : gpxFileName);
+  document.getElementById("gpxFileNameInput").style.display = "none";
+  route2gpx();
+}
+
+document.getElementById("gpxFileNameInputCancel").onclick = function () {
+  document.getElementById("gpxFileNameInput").style.display = "none";
+  console.log(gpxFileName);
+}
 
 document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
@@ -87,8 +105,8 @@ popupCloser.onclick = function () {
 };
 
 savePoiNameButton.onclick = function () {
-  const coordinate = toLonLat(poiCoordinate);
-  var fileName = fileNameInput.value;
+  // const coordinate = toLonLat(poiCoordinate);
+  const fileName = fileNameInput.value;
   const poiMarker = new Feature({
     routeFeature: true,
     name: fileName,
@@ -100,7 +118,7 @@ savePoiNameButton.onclick = function () {
   return false;
 };
 
-var slitlagerkarta = new TileLayer({
+const slitlagerkarta = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta/{z}/{x}/{y}.jpg",
     minZoom: 6,
@@ -110,7 +128,7 @@ var slitlagerkarta = new TileLayer({
   useInterimTilesOnError: false,
 });
 
-var slitlagerkarta_nedtonad = new TileLayer({
+const slitlagerkarta_nedtonad = new TileLayer({
   source: new XYZ({
     url: "https://jole84.se/slitlagerkarta_nedtonad/{z}/{x}/{y}.jpg",
     minZoom: 6,
@@ -121,7 +139,7 @@ var slitlagerkarta_nedtonad = new TileLayer({
   useInterimTilesOnError: false,
 });
 
-var ortofoto = new TileLayer({
+const ortofoto = new TileLayer({
   source: new TileWMS({
     url: "https://minkarta.lantmateriet.se/map/ortofoto/",
     params: {
@@ -132,7 +150,7 @@ var ortofoto = new TileLayer({
   minZoom: 15.5,
 });
 
-var topoweb = new TileLayer({
+const topoweb = new TileLayer({
   source: new XYZ({
     url: "https://minkarta.lantmateriet.se/map/topowebbcache/?layer=topowebb&style=default&tilematrixset=3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix={z}&TileCol={x}&TileRow={y}",
     maxZoom: 17,
@@ -140,7 +158,7 @@ var topoweb = new TileLayer({
   visible: false,
 });
 
-var osm = new TileLayer({
+const osm = new TileLayer({
   source: new OSM(),
   visible: false,
 });
@@ -212,21 +230,21 @@ const gpxStyle = {
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 
-var trackLineString = new LineString([]);
-var trackLineFeature = new Feature({
+const trackLineString = new LineString([]);
+const trackLineFeature = new Feature({
   type: "trackLine",
   routeFeature: true,
   geometry: trackLineString,
 });
 
-var routeLineLayer = new VectorLayer({
+const routeLineLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     return routeStyle[feature.get("type")];
   },
 });
 
-var trackLineLayer = new VectorLayer({
+const trackLineLayer = new VectorLayer({
   source: new VectorSource({
     features: [trackLineFeature],
   }),
@@ -235,16 +253,15 @@ var trackLineLayer = new VectorLayer({
   },
 });
 
-var trackPointsLayer = new VectorLayer({
+const trackPointsLayer = new VectorLayer({
   source: new VectorSource({
-    // features: [trackLineFeature],
   }),
   style: function (feature) {
     return routeStyle[feature.get("type")];
   },
 });
 
-var poiLayer = new VectorLayer({
+const poiLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     return new Style({
@@ -270,7 +287,7 @@ var poiLayer = new VectorLayer({
   },
 });
 
-var gpxLayer = new VectorLayer({
+const gpxLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
     gpxStyle["Point"].getText().setText(feature.get("name"));
@@ -317,7 +334,7 @@ modifyTrackLine.on("modifyend", function () {
 
 trackLineString.addEventListener("change", function () {
   trackPointsLayer.getSource().clear();
-  for (var i = 0; i < trackLineString.getCoordinates().length; i++) {
+  for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
       straight: (trackPointStraight[i] || false),
       type: getPointType(i),
@@ -392,16 +409,16 @@ function addPosition(coordinate) {
 }
 
 function removePosition(pixel) {
-  var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
-  var closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
+  const closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
+  const closestPoi = poiLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(pixel));
 
   // remove trackPoint and redraw layer
   if (closestTrackPoint != undefined) {
     if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
       trackPointsLayer.getSource().removeFeature(closestTrackPoint);
     }
-    var trackPoints = [];
-    for (var i = 0; i < trackPointsLayer.getSource().getFeatures().length + 1; i++) {
+    const trackPoints = [];
+    for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length + 1; i++) {
       try {
         trackPoints.push(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates());
       } catch {
@@ -430,13 +447,13 @@ function removePosition(pixel) {
 }
 
 function updateInfo() {
-  var centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
+  const centerCoordinate = toLonLat(map.getView().getCenter()).reverse();
   coordsDiv.innerHTML = toStringXY(centerCoordinate, 5);
-  var streetviewlink =
+  const streetviewlink =
     '<a href="http://maps.google.com/maps?q=&layer=c&cbll=' +
     centerCoordinate +
     '" target="_blank">Streetview</a>';
-  var gmaplink =
+  const gmaplink =
     '<a href="http://maps.google.com/maps?q=' +
     centerCoordinate +
     '" target="_blank">Gmap</a>';
@@ -453,8 +470,8 @@ function isTouchDevice() {
 }
 
 function routeMe() {
-  var coordsString = [];
-  var straightPoints = [];
+  const coordsString = [];
+  const straightPoints = [];
   trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
     coordsString.push(toLonLat(coordinate));
   });
@@ -465,7 +482,7 @@ function routeMe() {
     }
   });
 
-  var brouterUrl =
+  const brouterUrl =
     "https://brouter.de/brouter" +
     "?lonlats=" +
     coordsString.join("|") +
@@ -510,9 +527,9 @@ function routeMe() {
 }
 
 function route2gpx() {
-  var poiString = [];
-  var coordsString = [];
-  var straightPoints = [];
+  const poiString = [];
+  const coordsString = [];
+  const straightPoints = [];
   trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
     coordsString.push(toLonLat(coordinate));
   });
@@ -528,12 +545,10 @@ function route2gpx() {
   });
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
-    var brouterUrl =
+    const brouterUrl =
       "https://brouter.de/brouter?lonlats=" +
       coordsString.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=Rutt_" +
-      new Date().toLocaleDateString() +
-      "_" +
+      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName + "_" +
       trackLength.toFixed(2) +
       "km" +
       "&straight=" +
@@ -551,17 +566,16 @@ function route2gpx() {
   <desc>GPX log created by jole84 webapp</desc>
 </metadata>`;
 
-    for (var i = 0; i < poiString.length; i++) {
+    for (let i = 0; i < poiString.length; i++) {
       gpxFile += `
   <wpt lat="${poiString[i][0][1]}" lon="${poiString[i][0][0]}"><name>${poiString[i][1]}</name></wpt>`;
     }
 
     gpxFile += `
 </gpx>`;
-    var file = new Blob([gpxFile], { type: "application/gpx+xml" });
-    var filename = "Rutt_" + new Date().toLocaleString().replace(" ", "_") + ".gpx";
-    console.log(gpxFile, filename);
-    saveAs(file, filename);
+    const file = new Blob([gpxFile], { type: "application/gpx+xml" });
+    console.log(gpxFile, gpxFileName);
+    saveAs(file, gpxFileName + ".gpx");
   }
 }
 
@@ -578,21 +592,21 @@ function getPointType(i) {
 // gpx loader
 function handleFileSelect(evt) {
   showGPXdiv.style.display = "inline-block";
-  var files = evt.target.files; // FileList object
+  const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   gpxLayer.getSource().clear();
-  for (var i = 0; i < files.length; i++) {
-    var reader = new FileReader();
+  for (let i = 0; i < files.length; i++) {
+    const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+      const gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
 
       if (files.length > 1) {
         // set random color if two or more files is loaded
-        var color = [
+        const color = [
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
           Math.floor(Math.random() * 255),
@@ -634,7 +648,7 @@ function handleFileSelect(evt) {
     showGPX.checked = true;
     gpxLayer.setVisible(true);
     if (gpxLayer.getSource().getState() === "ready") {
-      var padding = 100;
+      const padding = 100;
       view.fit(gpxLayer.getSource().getExtent(), {
         padding: [padding, padding, padding, padding],
         duration: 500,
@@ -702,7 +716,7 @@ map.on("singleclick", function (event) {
       ).replace(",", "");
       fileNameInput.select();
     } else if (event.originalEvent.ctrlKey) {
-      var coordinate = toLonLat(event.coordinate).reverse();
+      const coordinate = toLonLat(event.coordinate).reverse();
       window.open(
         "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
         "_blank",
@@ -719,7 +733,7 @@ map.on("singleclick", function (event) {
 
 map.on("contextmenu", function (event) {
   // change trackPoint straight value
-  var closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(event.pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
+  const closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(map.getCoordinateFromPixel(event.pixel), function (feature) { return feature.getGeometry().getType() == "Point" });
   if (closestTrackPoint != undefined) {
     if (getPixelDistance(event.pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
       closestTrackPoint.set("straight", !closestTrackPoint.get("straight"));
@@ -734,14 +748,14 @@ map.on("contextmenu", function (event) {
 document.addEventListener("mouseup", function (event) {
   if (event.button == 1) {
     // middle mouse button
-    var eventPixel = [event.clientX, event.clientY];
+    const eventPixel = [event.clientX, event.clientY];
     removePosition(eventPixel);
     routeMe();
   }
 });
 
 document.addEventListener("keyup", function (event) {
-  if (!overlay.getPosition()) {
+  if (!overlay.getPosition() && document.getElementById("gpxFileNameInput").style.display != "unset") {
     if (event.key == "p") {
       savePoiPopup();
     }
@@ -751,8 +765,12 @@ document.addEventListener("keyup", function (event) {
 document.addEventListener("keydown", function (event) {
   if (document.getElementById("helpText").style.display != "none" && (event.key == "Enter" || event.key == "Escape")) {
     document.getElementById("helpTextOk").click();
-  }
-  if (!overlay.getPosition()) {
+  } else if (document.getElementById("gpxFileNameInput").style.display == "unset") {
+    if (event.key == "Enter") {
+      event.preventDefault();
+      document.getElementById("gpxFileNameInputOk").click();
+    }
+  } else {
     if (event.key == "a") {
       addPositionMapCenter();
     }
@@ -786,7 +804,7 @@ view.on("change:center", function () {
 });
 
 map.on("pointermove", function (evt) {
-  var hit = this.forEachFeatureAtPixel(evt.pixel, function (feature) {
+  const hit = this.forEachFeatureAtPixel(evt.pixel, function (feature) {
     if (feature.get("routeFeature")) {
       return true;
     }
@@ -801,8 +819,8 @@ map.on("pointermove", function (evt) {
 });
 
 function getPlaceName([lon, lat]) {
-  let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
-  var textString;
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+  let textString;
 
   fetch(url).then((response) => {
     response.json().then((result) => {
@@ -818,10 +836,10 @@ window.onbeforeunload = function () {
   localStorage.centerCoordinate = JSON.stringify(view.getCenter());
   localStorage.centerZoom = view.getZoom();
 
-  var trackPoints = [];
-  var poiString = [];
+  const trackPoints = [];
+  const poiString = [];
 
-  for (var i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
+  for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
     trackPoints.push([
       trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates(),
       trackPointsLayer.getSource().getFeatureById(i).get("straight")
@@ -847,7 +865,7 @@ JSON.parse(localStorage.trackPoints).forEach(function (element, index) {
 
 JSON.parse(localStorage.poiString).forEach(function (element) {
   const coordinate = element[0];
-  var fileName = element[1];
+  const fileName = element[1];
   const poiMarker = new Feature({
     routeFeature: true,
     name: fileName,
@@ -865,3 +883,4 @@ document.getElementById("clearMapButton").addEventListener("click", function () 
   gpxLayer.getSource().clear();
   showGPXdiv.style.display = "none";
 });
+
