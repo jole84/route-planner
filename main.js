@@ -53,13 +53,13 @@ removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
 
 exportRouteButton.onclick = function () {
-  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleString().replace(" ", "_");
+  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleString().replaceAll(" ", "_");
   document.getElementById("gpxFileNameInput").style.display = "unset";
   document.getElementById("gpxFileName").select();
 }
 
 document.getElementById("gpxFileNameInputOk").onclick = function () {
-  gpxFileName = encodeURI(document.getElementById("gpxFileName").value.replace(" ", "_") || document.getElementById("gpxFileName").placeholder);
+  gpxFileName = encodeURI(document.getElementById("gpxFileName").value.replaceAll(" ", "_") || document.getElementById("gpxFileName").placeholder);
   document.getElementById("gpxFileNameInput").style.display = "none";
   route2gpx();
 }
@@ -542,7 +542,7 @@ function route2gpx() {
   });
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
-    const brouterUrl =
+    let brouterUrl =
       "https://brouter.de/brouter?lonlats=" +
       coordsString.join("|") +
       "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName + "_" +
@@ -788,7 +788,7 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "Escape") {
       document.getElementById("gpxFileNameInputCancel").click();
     }
-  } else {
+  } else if (!overlay.getPosition()) {
     if (event.ctrlKey && event.key == "s") {
       event.preventDefault();
       exportRouteButton.click();
