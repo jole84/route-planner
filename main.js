@@ -770,6 +770,9 @@ document.addEventListener("keydown", function (event) {
       event.preventDefault();
       document.getElementById("gpxFileNameInputOk").click();
     }
+    if (event.key == "Escape") {
+      document.getElementById("gpxFileNameInputCancel").click();
+    }
   } else {
     if (event.ctrlKey && event.key == "s") {
       event.preventDefault();
