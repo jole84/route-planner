@@ -51,24 +51,21 @@ customFileButton.addEventListener("change", handleFileSelect, false);
 addPositionButton.onclick = addPositionMapCenter;
 removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
-// exportRouteButton.onclick = route2gpx;
 
 exportRouteButton.onclick = function () {
-  gpxFileName = gpxFileName ? gpxFileName : "Rutt_" + new Date().toLocaleString().replace(" ", "_");
-  document.getElementById("gpxFileName").placeholder = gpxFileName;
+  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleString().replace(" ", "_");
   document.getElementById("gpxFileNameInput").style.display = "unset";
   document.getElementById("gpxFileName").select();
 }
 
 document.getElementById("gpxFileNameInputOk").onclick = function () {
-  gpxFileName = encodeURI(document.getElementById("gpxFileName").value ? document.getElementById("gpxFileName").value.replace(" ", "_") : gpxFileName);
+  gpxFileName = encodeURI(document.getElementById("gpxFileName").value.replace(" ", "_") || document.getElementById("gpxFileName").placeholder);
   document.getElementById("gpxFileNameInput").style.display = "none";
   route2gpx();
 }
 
 document.getElementById("gpxFileNameInputCancel").onclick = function () {
   document.getElementById("gpxFileNameInput").style.display = "none";
-  console.log(gpxFileName);
 }
 
 document.getElementById("showGPX").addEventListener("change", function () {
