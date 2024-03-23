@@ -588,7 +588,19 @@ function getPointType(i) {
 
 gpxLayer.getSource().addEventListener("addfeature", function () {
   showGPXdiv.style.display = "inline-block";
-})
+  gpxLayer.getSource().once("change", function () {
+    showGPX.checked = true;
+    gpxLayer.setVisible(true);
+    if (gpxLayer.getSource().getState() === "ready") {
+      const padding = 100;
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        duration: 500,
+        maxZoom: 15,
+      });
+    }
+  });
+});
 
 // gpx loader
 function handleFileSelect(evt) {
@@ -644,18 +656,6 @@ function handleFileSelect(evt) {
       gpxLayer.getSource().addFeatures(gpxFeatures);
     };
   }
-  gpxLayer.getSource().once("change", function () {
-    showGPX.checked = true;
-    gpxLayer.setVisible(true);
-    if (gpxLayer.getSource().getState() === "ready") {
-      const padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        duration: 500,
-        maxZoom: 15,
-      });
-    }
-  });
 }
 
 if ("launchQueue" in window) {
