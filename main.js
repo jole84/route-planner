@@ -771,6 +771,10 @@ document.addEventListener("keydown", function (event) {
       document.getElementById("gpxFileNameInputOk").click();
     }
   } else {
+    if (event.ctrlKey && event.key == "s") {
+      event.preventDefault();
+      exportRouteButton.click();
+    }
     if (event.key == "a") {
       addPositionMapCenter();
     }
