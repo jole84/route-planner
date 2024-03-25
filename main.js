@@ -329,7 +329,14 @@ modifyTrackLine.on("modifyend", function () {
   routeMe();
 });
 
+trackPointsLayer.on("change", function () {
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    trackPointStraight[feature.getId()] = feature.get("straight");
+  });
+})
+
 trackLineString.addEventListener("change", function () {
+
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
@@ -413,6 +420,7 @@ function removePosition(pixel) {
   // remove trackPoint and redraw layer
   if (closestTrackPoint != undefined) {
     if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
+      delete trackPointStraight[closestTrackPoint.getId()];
       trackPointsLayer.getSource().removeFeature(closestTrackPoint);
       removedItem = true;
     }
@@ -723,7 +731,7 @@ function gpxToRoute() {
   });
 }
 
-map.on("contextmenu", function (event) {
+map.on("singleclick", function (event) {
   if (!touchFriendlyCheck.checked) {
     if (event.originalEvent.altKey) {
       // if alt + click add poi
@@ -740,9 +748,24 @@ map.on("contextmenu", function (event) {
         "http://maps.google.com/maps?q=&layer=c&cbll=" + coordinate,
         "_blank",
       );
-    } else if (event.originalEvent.shiftKey) {
+    } else {
+      // change trackPoint straight value
+      const closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(event.coordinate, function (feature) { return feature.getGeometry().getType() == "Point" });
+      if (closestTrackPoint != undefined) {
+        if (getPixelDistance(event.pixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
+          closestTrackPoint.set("straight", !closestTrackPoint.get("straight"));
+        }
+        routeMe();
+      }
+    }
+  }
+});
+
+map.on("contextmenu", function (event) {
+  if (!touchFriendlyCheck.checked) {
+    if (event.originalEvent.shiftKey) {
       // if shift + click add offroad waypoint
-      trackPointStraight[trackLineFeature.getGeometry().getCoordinates().length] = true;
+      trackPointStraight[trackLineFeature.getGeometry().getCoordinates().length - 1] = true;
     }
     let removedItem = removePosition(event.pixel);
     if (!removedItem) {
@@ -752,23 +775,11 @@ map.on("contextmenu", function (event) {
 });
 
 document.addEventListener("mouseup", function (event) {
-  if (!touchFriendlyCheck.checked) {
-    // left mouse button
-    if (event.button == 0) {
-      const eventPixel = [event.clientX, event.clientY];
-      const eventCoordinate = map.getCoordinateFromPixel(eventPixel);
-      // change trackPoint straight value
-      const closestTrackPoint = trackPointsLayer.getSource().getClosestFeatureToCoordinate(eventCoordinate, function (feature) { return feature.getGeometry().getType() == "Point" });
-      if (closestTrackPoint != undefined) {
-        if (getPixelDistance(eventPixel, map.getPixelFromCoordinate(closestTrackPoint.getGeometry().getCoordinates())) < 40) {
-          closestTrackPoint.set("straight", !closestTrackPoint.get("straight"));
-        }
-      }
-      trackPointsLayer.getSource().forEachFeature(function (feature) {
-        trackPointStraight[feature.getId()] = feature.get("straight");
-      });
-      routeMe();
-    }
+  // middle mouse button
+  if (event.button == 1) {
+    console.log(event);
+    console.log(trackPointsLayer.getSource().getFeatureById(trackPointsLayer.getSource().getFeatures().length - 1))
+    console.log(trackPointsLayer.getSource().getFeatures().length - 1)
   }
 });
 
