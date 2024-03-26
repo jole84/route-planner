@@ -704,10 +704,6 @@ if (isTouchDevice()) {
   map.addInteraction(modifypoi);
 }
 
-modifypoi.addEventListener("modifyend", function () {
-  console.log(poiLayer.getSource().getFeatures())
-});
-
 function gpxToRoute() {
   // convert loaded gpx track to route
   trackPointStraight = {};
@@ -778,8 +774,6 @@ document.addEventListener("mouseup", function (event) {
   // middle mouse button
   if (event.button == 1) {
     console.log(event);
-    console.log(trackPointsLayer.getSource().getFeatureById(trackPointsLayer.getSource().getFeatures().length - 1))
-    console.log(trackPointsLayer.getSource().getFeatures().length - 1)
   }
 });
 
