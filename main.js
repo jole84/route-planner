@@ -6,8 +6,7 @@ import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
-import GeoJSON from "ol/format/GeoJSON.js";
-import GPX from "ol/format/GPX.js";
+import {GPX, GeoJSON, KML} from 'ol/format.js';
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
 import LineString from "ol/geom/LineString";
 import OSM from "ol/source/OSM.js";
@@ -23,24 +22,24 @@ const addPositionButton = document.getElementById("addPositionButton");
 const coordsDiv = document.getElementById("coordsDiv");
 const defaultCenter = [1700000, 8500000];
 const defaultZoom = 5;
+const exportRouteButton = document.getElementById("exportRouteButton");
 const fileNameInput = document.getElementById("fileNameInput");
-const gpxFormat = new GPX();
 const info2Div = document.getElementById("info2");
 const info3Div = document.getElementById("info3");
 const info4Div = document.getElementById("info4");
 const infoDiv = document.getElementById("info");
 const layerSelector = document.getElementById("layerSelector");
+const linkCode = document.getElementById("linkCode");
 const popupCloser = document.getElementById("popup-closer");
 const popupContainer = document.getElementById("popup");
 const removePositionButton = document.getElementById("removePositionButton");
-const linkCode = document.getElementById("linkCode");
 const savePoiButton = document.getElementById("savePoiButton");
 const savePoiNameButton = document.getElementById("savePoiNameButton");
-const exportRouteButton = document.getElementById("exportRouteButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
-let poiCoordinate;
 let gpxFileName;
+let gpxFormat;
+let poiCoordinate;
 let trackLength;
 let trackPointStraight = {};
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
@@ -651,6 +650,14 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
+      const fileExtention = files[0].name.split(".").pop();
+      if (fileExtention === "gpx") {
+        gpxFormat = new GPX();
+      } else if (fileExtention === "kml") {
+        gpxFormat = new KML({extractStyles: false});
+      } else if (fileExtention === "geojson") {
+        gpxFormat = new GeoJSON();
+      }
       const gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
@@ -738,6 +745,13 @@ function gpxToRoute() {
   trackLineString.setCoordinates([]);
 
   gpxLayer.getSource().forEachFeature(function (element) {
+    console.log(element.getGeometry().getType())
+    if (element.getGeometry().getType() === "LineString") {
+      element.getGeometry().simplify(500).getCoordinates().reverse().forEach(function (coordinate) {
+        trackLineString.appendCoordinate(coordinate);
+      });
+      routeMe();
+    }
     if (element.getGeometry().getType() === "MultiLineString") {
       element.getGeometry().simplify(500).getCoordinates()[0].forEach(function (coordinate) {
         trackLineString.appendCoordinate(coordinate);
