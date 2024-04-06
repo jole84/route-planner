@@ -86,31 +86,28 @@ document.getElementById("helpTextOk").onclick = function () {
 function buildLinkCode() {
   const trackPoints = [];
   const poiPoints = [];
+
+  linkCode.innerHTML = "https://jole84.se/nav-app/index.html?";
   
   if (routeLineLayer.getSource().getFeatures().length > 0) {
     const routeLineFeature = routeLineLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates();
     for (let i = 0; i < routeLineFeature.length; i++) {
       trackPoints.push(toLonLat(routeLineFeature[i]));
     }
+    linkCode.innerHTML += "trackPoints=" + JSON.stringify(trackPoints);
   }
   // for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
   //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
   // }
 
-  poiLayer.getSource().forEachFeature(function (feature) {
-    poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()), feature.get("name")]);
-  });
-
-  linkCode.innerHTML = ("https://jole84.se/nav-app/index.html?trackPoints=" + JSON.stringify(trackPoints) + "&poiPoints=" + JSON.stringify(poiPoints));
-}
-
-linkCode.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(encodeURI(linkCode.innerHTML));
-  } catch (error) {
-    console.error("Failed to copy to clipboard:", error);
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    poiLayer.getSource().forEachFeature(function (feature) {
+      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()), feature.get("name")]);
+    });
+    linkCode.innerHTML += "&poiPoints=" + JSON.stringify(poiPoints);
   }
-});
+  document.getElementById("navAppButton").setAttribute("href", linkCode.innerHTML);
+}
 
 document.getElementById("help").onclick = function () {
   buildLinkCode();
