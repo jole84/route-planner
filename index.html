@@ -232,6 +232,14 @@
     .popup-content {
       margin-bottom: 8px;
     }
+
+    .linkCode {
+      overflow: hidden;
+      line-clamp: 3;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
   </style>
 </head>
 
@@ -315,6 +323,10 @@
     <kbd>Ctrl + vänsterklick</kbd> öppna streetview<br>
     <kbd>Shift + högerklick</kbd> lägg till offroad waypoint<br>
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
+
+    <p class="linkCode">
+      <code class="user-select-all" id="linkCode"></code>
+    </p>
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
 
