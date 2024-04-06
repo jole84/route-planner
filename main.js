@@ -237,6 +237,7 @@ const trackLineFeature = new Feature({
 const routeLineLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
     return routeStyle[feature.get("type")];
   },
 });
@@ -478,6 +479,47 @@ function isTouchDevice() {
   );
 }
 
+function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceToNext, turnDeg]) {
+  let returnString;
+  const nummer = {
+    1: "första",
+    2: "andra",
+    3: "tredje",
+    4: "fjärde",
+    5: "femte",
+  }
+  const turnType = {
+    1: "Fortsätt (rakt fram)",
+    2: "Sväng vänster",
+    3: "Sväng svagt åt vänster",
+    4: "Sväng skarpt vänster",
+    5: "Sväng höger",
+    6: "Sväng svagt åt höger",
+    7: "Sväng skarpt höger",
+    8: "Håll vänster",
+    9: "Håll höger",
+    10: "U-sväng",
+    11: "U-sväng höger",
+    12: "Off route",
+    13: "I rondellen tag ",
+    14: "I rondellen tag ",
+    15: "180 grader u-sväng",
+    16: "Beeline routing",
+  }
+  returnString = turnType[turnInstruction];
+  if (roundaboutExit > 0) {
+    returnString += nummer[roundaboutExit] + " utfarten";
+  }
+  if (distanceToNext < 1000) {
+    returnString += ",\nfortsätt i " + Math.round(distanceToNext) + "m"
+  }
+  if (distanceToNext > 1000) {
+    returnString += ",\nfortsätt i " + Math.round(distanceToNext / 1000) + "km"
+  }
+  return returnString;
+}
+routeStyle["routePoint"] = gpxStyle["Point"];
+
 function routeMe() {
   const coordsString = [];
   const straightPoints = [];
@@ -497,7 +539,8 @@ function routeMe() {
     coordsString.join("|") +
     "&profile=car-fast&alternativeidx=0&format=geojson" +
     "&straight=" +
-    straightPoints.join(",");
+    straightPoints.join(",") +
+    "&timode=2";
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
     fetch(brouterUrl).then(function (response) {
@@ -526,6 +569,16 @@ function routeMe() {
         // remove previus route
         routeLineLayer.getSource().clear();
 
+        const voicehints = result.features[0].properties.voicehints;
+        const routeGeometryCoordinates = route.getCoordinates();
+        for (var i = 0; i < voicehints.length; i++) {
+          const marker = new Feature({
+            type: "routePoint",
+            name: translateVoicehint(voicehints[i]),
+            geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
+          });
+          routeLineLayer.getSource().addFeature(marker);
+        }
         // finally add route to map
         routeLineLayer.getSource().addFeature(routeGeometry);
       });
