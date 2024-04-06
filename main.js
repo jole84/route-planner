@@ -6,7 +6,7 @@ import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
-import {GPX, GeoJSON, KML} from 'ol/format.js';
+import { GPX, GeoJSON, KML } from 'ol/format.js';
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
 import LineString from "ol/geom/LineString";
 import OSM from "ol/source/OSM.js";
@@ -86,7 +86,7 @@ function buildLinkCode() {
   const poiPoints = [];
 
   linkCode.innerHTML = "https://jole84.se/nav-app/index.html?";
-  
+
   if (routeLineLayer.getSource().getFeatures().length > 0) {
     const routeLineFeature = routeLineLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates();
     for (let i = 0; i < routeLineFeature.length; i++) {
@@ -654,7 +654,7 @@ function handleFileSelect(evt) {
       if (fileExtention === "gpx") {
         fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        fileFormat = new KML({extractStyles: false});
+        fileFormat = new KML({ extractStyles: false });
       } else if (fileExtention === "geojson") {
         fileFormat = new GeoJSON();
       }
@@ -714,7 +714,7 @@ if ("launchQueue" in window) {
       if (fileExtention === "gpx") {
         fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        fileFormat = new KML({extractStyles: false});
+        fileFormat = new KML({ extractStyles: false });
       } else if (fileExtention === "geojson") {
         fileFormat = new GeoJSON();
       }
@@ -809,6 +809,8 @@ map.on("singleclick", function (event) {
 });
 
 map.on("contextmenu", function (event) {
+  event.preventDefault();
+  // document.getElementById("helpText").style.display == "none" && !overlay.getPosition() && event.target.getAttribute("id") != "gpxFileName"
   if (!touchFriendlyCheck.checked) {
     if (event.originalEvent.shiftKey) {
       // if shift + click add offroad waypoint
