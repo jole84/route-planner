@@ -38,7 +38,6 @@ const savePoiNameButton = document.getElementById("savePoiNameButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
 let gpxFileName;
-let gpxFormat;
 let poiCoordinate;
 let trackLength;
 let trackPointStraight = {};
@@ -643,6 +642,7 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
 
 // gpx loader
 function handleFileSelect(evt) {
+  let fileFormat;
   const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   gpxLayer.getSource().clear();
@@ -650,15 +650,15 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      const fileExtention = files[0].name.split(".").pop();
+      const fileExtention = files[0].name.split(".").pop().toLowerCase();
       if (fileExtention === "gpx") {
-        gpxFormat = new GPX();
+        fileFormat = new GPX();
       } else if (fileExtention === "kml") {
-        gpxFormat = new KML({extractStyles: false});
+        fileFormat = new KML({extractStyles: false});
       } else if (fileExtention === "geojson") {
-        gpxFormat = new GeoJSON();
+        fileFormat = new GeoJSON();
       }
-      const gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+      const gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
@@ -707,11 +707,20 @@ function handleFileSelect(evt) {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
+    let fileFormat;
     for (const file of launchParams.files) {
       // load file 
+      const fileExtention = file.name.split(".").pop().toLowerCase();
+      if (fileExtention === "gpx") {
+        fileFormat = new GPX();
+      } else if (fileExtention === "kml") {
+        fileFormat = new KML({extractStyles: false});
+      } else if (fileExtention === "geojson") {
+        fileFormat = new GeoJSON();
+      }
       const f = await file.getFile();
       const content = await f.text();
-      const gpxFeatures = new GPX().readFeatures(content, {
+      const gpxFeatures = fileFormat.readFeatures(content, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
