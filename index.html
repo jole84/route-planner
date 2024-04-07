@@ -49,13 +49,7 @@
       bottom: 5px;
       right: 5px;
       text-align: right;
-      max-width: 75%;
-    }
-
-    .btn-group-lg {
-      margin-bottom: 5px;
-      /* min-width: 100px;
-        min-height: 150px; */
+      max-width: 50%;
     }
 
     .lowerLeftGroup {
@@ -63,11 +57,7 @@
       z-index: 10;
       bottom: 5px;
       left: 5px;
-      -webkit-transition: scale 200ms;
-      transition: scale 200ms;
-      transform-origin: left bottom;
       max-width: 50%;
-      word-wrap: break-word;
     }
 
     .infoGroup {
@@ -88,12 +78,6 @@
       top: 5px;
       word-wrap: break-word;
       z-index: 10;
-    }
-
-    .optionGroup {
-      z-index: 10;
-      bottom: 5px;
-      left: 5px;
     }
 
     .textBox {
@@ -161,7 +145,8 @@
 
     #layerSelector {
       display: inline-flex;
-      margin-bottom: 5px;
+      max-width: 200px;
+      margin-bottom: 0;
     }
 
     #crosshair {
@@ -240,6 +225,10 @@
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
     }
+
+    .element {
+      margin-top: 5px;
+    }
   </style>
 </head>
 
@@ -251,13 +240,13 @@
 
 
     <div class="lowerRightGroup" id="lowerRightGroup">
-      <div class="btn-group-vertical btn-group-lg" role="group">
+      <div class="btn-group-vertical btn-group-lg element" role="group">
         <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
         <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
       </div>
       <br>
-      <button class="btn btn-primary" id="help">hjälp</button>
-      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
+      <button class="btn btn-primary element" id="help">hjälp</button>
+      <button class="btn btn-danger element" id="savePoiButton">spara waypoint</button>
     </div>
 
     <div class="infoGroup" id="infoGroup">
@@ -278,19 +267,17 @@
     </div>
 
     <div class="lowerLeftGroup">
-      <div class="optionGroup">
-        <select class="form-select" id="layerSelector">
-          <option value="0">Jole84 Terrängkarta</option>
-          <option value="1">Jole84 Vägkarta</option>
-          <option value="2">Lantmäteriet Topo</option>
-          <option value="3">Lantmäteriet Orto</option>
-          <option value="4">OpenStreetMap</option>
-        </select>
-        <br>
-        <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
-        <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
-        <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
-      </div>
+      <select class="form-select" id="layerSelector">
+        <option value="0">Jole84 Terrängkarta</option>
+        <option value="1">Jole84 Vägkarta</option>
+        <option value="2">Lantmäteriet Topo</option>
+        <option value="3">Lantmäteriet Orto</option>
+        <option value="4">OpenStreetMap</option>
+      </select>
+      <br>
+      <button class="btn btn-warning element" id="exportRouteButton">Exportera Rutt</button>
+      <button class="btn btn-info element" id="clickFileButton">Ladda GPX</button>
+      <button class="btn btn-danger element" id="clearMapButton">Rensa karta</button>
     </div>
 
     <div id="popup" class="ol-popup">
@@ -325,7 +312,7 @@
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
 
     <br>
-    
+
     <a target="_blank" href="https://jole84.se/nav-app/index.html" class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg" width="50px"><br>Webbaserad <br>navigationsapp</a>
 
     <p class="linkCode">
