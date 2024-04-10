@@ -3,6 +3,8 @@
 
 <head>
   <link rel="manifest" href="manifest.json" />
+  <!-- MDB -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <!-- Google Fonts -->
@@ -29,6 +31,7 @@
     html,
     body,
     #map {
+      font-family: "B612";
       background-color: #bfe6ff;
       overscroll-behavior-y: contain !important;
       touch-action: none;
@@ -43,25 +46,7 @@
       filter: blur(5px) brightness(0.8);
     }
 
-    .lowerRightGroup {
-      position: absolute;
-      z-index: 10;
-      bottom: 5px;
-      right: 5px;
-      text-align: right;
-      max-width: 50%;
-    }
-
-    .lowerLeftGroup {
-      position: absolute;
-      z-index: 10;
-      bottom: 5px;
-      left: 5px;
-      max-width: 50%;
-    }
-
     .infoGroup {
-      font-family: "B612";
       backdrop-filter: blur(5px);
       background-color: rgba(251, 251, 251, 0.6);
       border-radius: 5px;
@@ -73,6 +58,7 @@
       max-width: 90%;
       padding-left: 5px;
       padding-right: 5px;
+      padding-bottom: 5px;
       position: absolute;
       right: 5px;
       top: 5px;
@@ -111,22 +97,6 @@
       float: right;
     }
 
-    /* @media only screen and (max-width: 600px) {
-      .lowerLeftGroup {
-        -webkit-transition: scale 200ms;
-        transition: scale 200ms;
-        transform-origin: left bottom;
-        scale: 0.5;
-      }
-
-      .lowerLeftGroup:hover {
-        -webkit-transition: scale 200ms;
-        transition: scale 200ms;
-        display: inline-block;
-        scale: 1.5;
-      }
-    } */
-
     #savePoiNameButton {
       margin-top: 12px;
     }
@@ -141,12 +111,6 @@
 
     #showGPXdiv {
       display: none;
-    }
-
-    #layerSelector {
-      display: inline-flex;
-      max-width: 200px;
-      margin-bottom: 0;
     }
 
     #crosshair {
@@ -226,28 +190,62 @@
       -webkit-box-orient: vertical;
     }
 
-    .element {
-      margin-top: 5px;
+    #lowerRightGroup {
+      flex-direction: column;
+      right: 5px;
+    }
+
+    #lowerLeftGroup {
+      left: 5px;
+      max-width: 75%;
+    }
+
+    .optionButtons {
+      bottom: 5px;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 5px;
+      position: absolute;
+      flex-direction: row-reverse;
+      z-index: 10;
+    }
+
+    @media (max-width: 600px) {
+      .optionButtons {
+        flex-direction: column;
+        filter: opacity(0.8);
+        max-width: 100px;
+      }
+
+      .optionButtons .btn {
+        padding: 1em;
+      }
+
+      #addRemoveButtons {
+        white-space: nowrap;
+      }
+
+      #lowerLeftGroup {
+        max-width: min-content;
+        bottom: unset;
+        top: 80px;
+      }
+
+      /* #lowerRightGroup {
+        bottom: unset !important;
+        top: 40%;
+      } */
+    }
+
+    #layerSelector {
+      max-width: fit-content;
     }
   </style>
 </head>
 
 <body>
-  <!-- MDB -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
   <script type="module" src="./main.js"></script>
   <div id="map">
-
-
-    <div class="lowerRightGroup" id="lowerRightGroup">
-      <div class="btn-group-vertical btn-group-lg element" role="group">
-        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
-      </div>
-      <br>
-      <button class="btn btn-primary element" id="help">hjälp</button>
-      <button class="btn btn-danger element" id="savePoiButton">spara waypoint</button>
-    </div>
 
     <div class="infoGroup" id="infoGroup">
       <div id="coordsDiv"></div>
@@ -255,7 +253,7 @@
       <div id="info2"></div>
       <div id="info3"></div>
       <div id="info4"></div>
-      <div id="touchFriendly" class="form-check">
+      <div id="touchFriendly">
         <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
         <label class="form-check-label" for="touchFriendlyCheck">touch</label>
       </div>
@@ -266,7 +264,16 @@
       </div>
     </div>
 
-    <div class="lowerLeftGroup">
+    <div class="optionButtons" id="lowerRightGroup">
+      <div class="btn-group-vertical btn-group-lg" role="group" id="addRemoveButtons">
+        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
+        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
+      </div>
+      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
+    </div>
+
+    <div class="optionButtons" id="lowerLeftGroup">
+      <button class="btn btn-success" id="help">meny</button>
       <select class="form-select" id="layerSelector">
         <option value="0">Jole84 Terrängkarta</option>
         <option value="1">Jole84 Vägkarta</option>
@@ -274,10 +281,9 @@
         <option value="3">Lantmäteriet Orto</option>
         <option value="4">OpenStreetMap</option>
       </select>
-      <br>
-      <button class="btn btn-warning element" id="exportRouteButton">Exportera Rutt</button>
-      <button class="btn btn-info element" id="clickFileButton">Ladda GPX</button>
-      <button class="btn btn-danger element" id="clearMapButton">Rensa karta</button>
+      <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
+      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
+      <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
     </div>
 
     <div id="popup" class="ol-popup">
@@ -313,7 +319,8 @@
 
     <br>
 
-    <a target="_blank" href="https://jole84.se/nav-app/index.html" class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg" width="50px"><br>Webbaserad <br>navigationsapp</a>
+    <a target="_blank" href="https://jole84.se/nav-app/index.html" class="btn btn-primary" id="navAppButton"><img
+        src="https://jole84.se/nav-app.svg" width="50px"><br>Webbaserad <br>navigationsapp</a>
 
     <p class="linkCode">
       <code class="user-select-all" id="linkCode">https://jole84.se/nav-app/index.html</code>
@@ -327,7 +334,9 @@
     <button class="btn btn-danger" id="gpxFileNameInputCancel">Avbryt</button>
     <button class="btn btn-primary" id="gpxFileNameInputOk">OK</button>
   </div>
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson" style="display: none;" />
+
+  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
+    style="display: none;" />
 
 </body>
 

@@ -95,12 +95,12 @@ function buildLinkCode() {
     linkCode.innerHTML += "trackPoints=" + JSON.stringify(trackPoints);
   }
   // for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
-  //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
-  // }
-
-  if (poiLayer.getSource().getFeatures().length > 0) {
-    poiLayer.getSource().forEachFeature(function (feature) {
-      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()), feature.get("name")]);
+    //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
+    // }
+    
+    if (poiLayer.getSource().getFeatures().length > 0) {
+      poiLayer.getSource().forEachFeature(function (feature) {
+      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()).splice(0,2), feature.get("name")]);
     });
     linkCode.innerHTML += "&poiPoints=" + JSON.stringify(poiPoints);
   }
@@ -742,8 +742,7 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
-  document.getElementById("addPositionButton").style.display = "none";
-  document.getElementById("removePositionButton").style.display = "none";
+  document.getElementById("addRemoveButtons").style.display = "none";
   map.addInteraction(modifyTrackLine);
   map.addInteraction(modifypoi);
 }
