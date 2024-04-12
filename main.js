@@ -95,12 +95,12 @@ function buildLinkCode() {
     linkCode.innerHTML += "trackPoints=" + JSON.stringify(trackPoints);
   }
   // for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
-    //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
-    // }
-    
-    if (poiLayer.getSource().getFeatures().length > 0) {
-      poiLayer.getSource().forEachFeature(function (feature) {
-      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()).splice(0,2), feature.get("name")]);
+  //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
+  // }
+
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    poiLayer.getSource().forEachFeature(function (feature) {
+      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()).splice(0, 2), feature.get("name")]);
     });
     linkCode.innerHTML += "&poiPoints=" + JSON.stringify(poiPoints);
   }
@@ -250,8 +250,18 @@ const gpxStyle = {
       width: 10,
     }),
   }),
+  Polygon: new Style({
+    stroke: new Stroke({
+      color: [255, 0, 0, 1],
+      width: 5,
+    }),
+    fill: new Fill({
+      color: [255, 0, 0, 0.2],
+    }),
+  }),
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
+gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
 
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
