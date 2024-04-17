@@ -181,9 +181,10 @@
       margin-bottom: 8px;
     }
 
-    .linkCode {
+    #linkCodeDiv {
+      line-break: anywhere;
+      padding: 15px 0px 15px 0px;
       overflow: hidden;
-      line-clamp: 3;
       display: -webkit-box;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
@@ -317,13 +318,12 @@
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
 
     <br>
+    <button class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg"
+        width="50px"><br>Webbaserad <br>navigationsapp</button>
 
-    <a target="_blank" href="https://jole84.se/nav-app/index.html" class="btn btn-primary" id="navAppButton"><img
-        src="https://jole84.se/nav-app.svg" width="50px"><br>Webbaserad <br>navigationsapp</a>
+    <button class="btn btn-success" id="shareRouteButton">Dela rutt</button>
 
-    <p class="linkCode">
-      <code class="user-select-all" id="linkCode">https://jole84.se/nav-app/index.html</code>
-    </p>
+    <code class="user-select-all" id="linkCodeDiv">https://jole84.se/nav-app/index.html</code>
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
 

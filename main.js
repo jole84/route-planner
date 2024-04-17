@@ -29,7 +29,6 @@ const info3Div = document.getElementById("info3");
 const info4Div = document.getElementById("info4");
 const infoDiv = document.getElementById("info");
 const layerSelector = document.getElementById("layerSelector");
-const linkCode = document.getElementById("linkCode");
 const popupCloser = document.getElementById("popup-closer");
 const popupContainer = document.getElementById("popup");
 const removePositionButton = document.getElementById("removePositionButton");
@@ -85,32 +84,44 @@ function buildLinkCode() {
   const trackPoints = [];
   const poiPoints = [];
 
-  linkCode.innerHTML = "https://jole84.se/nav-app/index.html?";
+  let linkCode = "https://jole84.se/nav-app/index.html?";
 
   if (routeLineLayer.getSource().getFeatures().length > 0) {
     const routeLineFeature = routeLineLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates();
     for (let i = 0; i < routeLineFeature.length; i++) {
       trackPoints.push(toLonLat(routeLineFeature[i]));
     }
-    linkCode.innerHTML += "trackPoints=" + JSON.stringify(trackPoints);
+    linkCode += "trackPoints=" + JSON.stringify(trackPoints);
   }
-  // for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
-  //   trackPoints.push(toLonLat(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
-  // }
 
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()).splice(0, 2), feature.get("name")]);
     });
-    linkCode.innerHTML += "&poiPoints=" + JSON.stringify(poiPoints);
+    linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
-  document.getElementById("navAppButton").setAttribute("href", linkCode.innerHTML);
+  return linkCode;
 }
 
 document.getElementById("help").onclick = function () {
-  buildLinkCode();
   document.getElementById("helpText").style.display = "unset";
+  document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
 };
+
+document.getElementById("navAppButton").onclick = function () {
+  console.log(buildLinkCode());
+  window.location.href = buildLinkCode();
+};
+
+document.getElementById("shareRouteButton").onclick = async () => {
+  if (navigator.share) {
+    await navigator.share({
+      url: buildLinkCode(),
+    });
+  } else {
+    navigator.clipboard.writeText(buildLinkCode());
+  }
+}
 
 const overlay = new Overlay({
   element: popupContainer,
@@ -965,6 +976,7 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
   });
   poiLayer.getSource().addFeature(poiMarker);
 });
+document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
   trackPointStraight = {};
@@ -975,4 +987,3 @@ document.getElementById("clearMapButton").addEventListener("click", function () 
   gpxLayer.getSource().clear();
   showGPXdiv.style.display = "none";
 });
-
