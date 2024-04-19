@@ -80,6 +80,13 @@ document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("map").style.filter = "unset";
 };
 
+function toCoordinateString(coordinate) {
+  if (coordinate[1] > 100) {
+    coordinate = toLonLat(coordinate);
+  }
+  return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
+}
+
 function buildLinkCode() {
   const trackPoints = [];
   const poiPoints = [];
@@ -89,14 +96,14 @@ function buildLinkCode() {
   if (routeLineLayer.getSource().getFeatures().length > 0) {
     const routeLineFeature = routeLineLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates();
     for (let i = 0; i < routeLineFeature.length; i++) {
-      trackPoints.push(toLonLat(routeLineFeature[i]));
+      trackPoints.push(toCoordinateString(routeLineFeature[i]));
     }
     linkCode += "trackPoints=" + JSON.stringify(trackPoints);
   }
 
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
-      poiPoints.push([toLonLat(feature.getGeometry().getCoordinates()).splice(0, 2), feature.get("name")]);
+      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
     });
     linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
@@ -106,6 +113,7 @@ function buildLinkCode() {
 document.getElementById("help").onclick = function () {
   document.getElementById("helpText").style.display = "unset";
   document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
+  document.getElementById("shareRouteButton").innerHTML = "dela rutt";
 };
 
 document.getElementById("navAppButton").onclick = function () {
@@ -120,6 +128,7 @@ document.getElementById("shareRouteButton").onclick = async () => {
     });
   } else {
     navigator.clipboard.writeText(buildLinkCode());
+    document.getElementById("shareRouteButton").innerHTML = "kopierad!";
   }
 }
 
