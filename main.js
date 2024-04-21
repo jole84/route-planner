@@ -93,10 +93,10 @@ function buildLinkCode() {
 
   let linkCode = "https://jole84.se/nav-app/index.html?";
 
-  if (routeLineLayer.getSource().getFeatures().length > 0) {
-    const routeLineFeature = routeLineLayer.getSource().getFeatures()[0].getGeometry().simplify(10).getCoordinates();
-    for (let i = 0; i < routeLineFeature.length; i++) {
-      trackPoints.push(toCoordinateString(routeLineFeature[i]));
+  const simplifiedRoute = route.simplify(10).getCoordinates();
+  if (simplifiedRoute.length > 0) {
+    for (let i = 0; i < simplifiedRoute.length; i++) {
+      trackPoints.push(toCoordinateString(simplifiedRoute[i]));
     }
     linkCode += "trackPoints=" + JSON.stringify(trackPoints);
   }
@@ -117,7 +117,6 @@ document.getElementById("help").onclick = function () {
 };
 
 document.getElementById("navAppButton").onclick = function () {
-  console.log(buildLinkCode());
   window.location.href = buildLinkCode();
 };
 
@@ -283,18 +282,26 @@ const gpxStyle = {
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
 
+const route = new LineString([]);
+const routeLineFeature = new Feature({
+  type: "routeLine",
+  geometry: route,
+});
+
+const routeLineLayer = new VectorLayer({
+  source: new VectorSource({
+    features: [routeLineFeature],
+  }),
+  style: function (feature) {
+    return routeStyle[feature.get("type")];
+  },
+});
+
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
   type: "trackLine",
   routeFeature: true,
   geometry: trackLineString,
-});
-
-const routeLineLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: function (feature) {
-    return routeStyle[feature.get("type")];
-  },
 });
 
 const trackLineLayer = new VectorLayer({
@@ -501,7 +508,7 @@ function removePosition(pixel) {
 
   // if only 1 wp, remove route and redraw startpoint
   if (trackPointsLayer.getSource().getFeatures().length == 1) {
-    routeLineLayer.getSource().clear();
+    route.setCoordinates([]);
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
@@ -558,13 +565,6 @@ function routeMe() {
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
     fetch(brouterUrl).then(function (response) {
       response.json().then(function (result) {
-        const route = new GeoJSON()
-          .readFeature(result.features[0], {
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857",
-          })
-          .getGeometry();
-
         trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
         const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
 
@@ -574,20 +574,12 @@ function routeMe() {
           "Restid: " +
           new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
 
-        const routeGeometry = new Feature({
-          type: "routeLine",
-          geometry: route,
-        });
-
-        // remove previus route
-        routeLineLayer.getSource().clear();
-
-        // finally add route to map
-        routeLineLayer.getSource().addFeature(routeGeometry);
+        route.setCoordinates(new GeoJSON().readFeature(result.features[0], {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        }).getGeometry().getCoordinates());
       });
     });
-  } else {
-    routeLineLayer.getSource().clear();
   }
 }
 
@@ -985,14 +977,17 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
   });
   poiLayer.getSource().addFeature(poiMarker);
 });
-document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
+
+route.addEventListener("change", function () {
+  document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
+});
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
   poiLayer.getSource().clear();
   trackLineString.setCoordinates([]);
-  routeLineLayer.getSource().clear();
+  route.setCoordinates([]);
   gpxLayer.getSource().clear();
   showGPXdiv.style.display = "none";
 });
