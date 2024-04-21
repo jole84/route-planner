@@ -51,7 +51,8 @@ removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
 
 exportRouteButton.onclick = function () {
-  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleString().replaceAll(" ", "_");
+  console.log(route);
+  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleDateString().replaceAll(" ", "_") + "_" + trackLength.toFixed(2) + "km";
   document.getElementById("gpxFileNameInput").style.display = "unset";
   document.getElementById("gpxFileName").select();
 }
@@ -147,7 +148,6 @@ popupCloser.onclick = function () {
 };
 
 savePoiNameButton.onclick = function () {
-  // const coordinate = toLonLat(poiCoordinate);
   const fileName = fileNameInput.value;
   const poiMarker = new Feature({
     routeFeature: true,
@@ -605,9 +605,7 @@ function route2gpx() {
     let brouterUrl =
       "https://brouter.de/brouter?lonlats=" +
       coordsString.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName + "_" +
-      trackLength.toFixed(2) +
-      "km" +
+      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName +
       "&straight=" +
       straightPoints.join(",");
 
