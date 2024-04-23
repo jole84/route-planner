@@ -38,7 +38,7 @@ const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
 let gpxFileName;
 let poiCoordinate;
-let trackLength;
+let trackLength = 0;
 let trackPointStraight = {};
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
 localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
@@ -51,7 +51,6 @@ removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
 
 exportRouteButton.onclick = function () {
-  console.log(route);
   document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleDateString().replaceAll(" ", "_") + "_" + trackLength.toFixed(2) + "km";
   document.getElementById("gpxFileNameInput").style.display = "unset";
   document.getElementById("gpxFileName").select();
@@ -584,50 +583,49 @@ function routeMe() {
 }
 
 function route2gpx() {
-  const poiString = [];
-  const coordsString = [];
-  const straightPoints = [];
-  trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
-    coordsString.push(toLonLat(coordinate));
-  });
+  let routeExist = false;
+  let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="jole84 route-planner">
+  <metadata>
+    <desc>GPX file created by jole84 route-planner</desc>
+  </metadata>`;
 
-  trackPointsLayer.getSource().forEachFeature(function (feature) {
-    if (feature.get("straight")) {
-      straightPoints.push(feature.getId());
-    }
-  });
-
-  poiLayer.getSource().forEachFeature(function (feature) {
-    poiString.push([toLonLat(feature.getGeometry().getCoordinates()), feature.get("name")]);
-  });
-
-  if (trackPointsLayer.getSource().getFeatures().length >= 2) {
-    let brouterUrl =
-      "https://brouter.de/brouter?lonlats=" +
-      coordsString.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName +
-      "&straight=" +
-      straightPoints.join(",");
-
-    if (poiString.length >= 1) {
-      brouterUrl += "&pois=" + poiString.join("|");
-    }
-    window.location = brouterUrl;
-  } else if (poiString.length >= 1) {
-    // simple gpx file if no route is created
-    let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="jole84 webapp">
-<metadata>
-  <desc>GPX log created by jole84 webapp</desc>
-</metadata>`;
-
-    for (let i = 0; i < poiString.length; i++) {
+  // for each poi
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    routeExist = true;
+    for (const element of poiLayer.getSource().getFeatures()) {
+      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+      const name = element.get("name");
       gpxFile += `
-  <wpt lat="${poiString[i][0][1]}" lon="${poiString[i][0][0]}"><name>${poiString[i][1]}</name></wpt>`;
+  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
     }
+  }
 
+  if (route.getCoordinates().length > 0) {
+    routeExist = true;
     gpxFile += `
+  <trk>
+    <name>${gpxFileName}</name>
+    <trkseg>`;
+
+    // for each trkpt
+    route.forEachSegment(function (segment) {
+      const lonlat = toLonLat(segment);
+      gpxFile += `
+      <trkpt lon="${lonlat[0]}" lat="${lonlat[1]}"><ele>${lonlat[2] || 0}</ele></trkpt>`;
+    });
+
+    // end of trkseg
+    gpxFile += `
+    </trkseg>
+  </trk>`;
+  }
+
+  // write end of file
+  gpxFile += `
 </gpx>`;
+
+  if (routeExist) {
     const file = new Blob([gpxFile], { type: "application/gpx+xml" });
     console.log(gpxFile, gpxFileName);
     saveAs(file, gpxFileName + ".gpx");
