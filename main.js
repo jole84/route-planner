@@ -88,17 +88,25 @@ function toCoordinateString(coordinate) {
 }
 
 function buildLinkCode() {
-  const trackPoints = [];
+  const routePoints = [];
   const poiPoints = [];
-
+  const trackPoints = [];
+  
   let linkCode = "https://jole84.se/nav-app/index.html?";
+
+  for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
+    trackPoints.push(toCoordinateString(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
+  }
+  
+  document.getElementById("linkCodeDiv2").innerHTML = (linkCode + "destinationsPoints=" + JSON.stringify(trackPoints));
+  document.getElementById("nav-link").href = (linkCode + "destinationsPoints=" + JSON.stringify(trackPoints));
 
   const simplifiedRoute = route.simplify(10).getCoordinates();
   if (simplifiedRoute.length > 0) {
     for (let i = 0; i < simplifiedRoute.length; i++) {
-      trackPoints.push(toCoordinateString(simplifiedRoute[i]));
+      routePoints.push(toCoordinateString(simplifiedRoute[i]));
     }
-    linkCode += "trackPoints=" + JSON.stringify(trackPoints);
+    linkCode += "trackPoints=" + JSON.stringify(routePoints);
   }
 
   if (poiLayer.getSource().getFeatures().length > 0) {
@@ -977,6 +985,7 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
 route.addEventListener("change", function () {
   document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
 });
+buildLinkCode();
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
   trackPointStraight = {};
