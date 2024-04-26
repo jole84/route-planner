@@ -406,7 +406,6 @@ trackPointsLayer.on("change", function () {
 })
 
 trackLineString.addEventListener("change", function () {
-
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
@@ -551,11 +550,9 @@ function isTouchDevice() {
 function routeMe() {
   const coordsString = [];
   const straightPoints = [];
-  trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
-    coordsString.push(toLonLat(coordinate));
-  });
 
   trackPointsLayer.getSource().forEachFeature(function (feature) {
+    coordsString[feature.getId()] = toLonLat(feature.getGeometry().getCoordinates());
     if (feature.get("straight")) {
       straightPoints.push(feature.getId());
     }
