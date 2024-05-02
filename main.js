@@ -88,39 +88,34 @@ function toCoordinateString(coordinate) {
 }
 
 function buildLinkCode() {
-  const routePoints = [];
+  const destinationPoints = [];
   const poiPoints = [];
-  const trackPoints = [];
   
-  let linkCode = "https://jole84.se/nav-app/index.html?";
-
-  for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
-    trackPoints.push(toCoordinateString(trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates()));
-  }
+  let linkCode = "https://jole84.se/nav-app/index.html?";  
   
-  document.getElementById("linkCodeDiv2").innerHTML = (linkCode + "destinationsPoints=" + JSON.stringify(trackPoints));
-  document.getElementById("nav-link").href = (linkCode + "destinationsPoints=" + JSON.stringify(trackPoints));
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
+  });
 
-  const simplifiedRoute = route.simplify(10).getCoordinates();
-  if (simplifiedRoute.length > 0) {
-    for (let i = 0; i < simplifiedRoute.length; i++) {
-      routePoints.push(toCoordinateString(simplifiedRoute[i]));
-    }
-    linkCode += "trackPoints=" + JSON.stringify(routePoints);
+  if (destinationPoints.length > 0) {
+    linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
   }
 
+  
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
     });
     linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
+  
+  document.getElementById("linkCodeDiv").innerHTML = linkCode;
   return linkCode;
 }
 
 document.getElementById("help").onclick = function () {
+  buildLinkCode();
   document.getElementById("helpText").style.display = "unset";
-  document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
   document.getElementById("shareRouteButton").innerHTML = "dela rutt";
 };
 
@@ -979,9 +974,6 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
   poiLayer.getSource().addFeature(poiMarker);
 });
 
-route.addEventListener("change", function () {
-  document.getElementById("linkCodeDiv").innerHTML = buildLinkCode();
-});
 buildLinkCode();
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
