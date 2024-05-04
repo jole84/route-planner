@@ -500,7 +500,7 @@ function removePosition(pixel) {
   }
 
   // remove poi
-  if (closestPoi != undefined) {
+  if (closestPoi != undefined && !removedItem) {
     if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())) < 40) {
       poiLayer.getSource().removeFeature(closestPoi);
       removedItem = true;
