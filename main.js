@@ -203,6 +203,7 @@ const topoweb = new TileLayer({
 });
 
 const osm = new TileLayer({
+  className: "saturated",
   source: new OSM(),
   visible: false,
 });
