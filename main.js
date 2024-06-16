@@ -658,9 +658,18 @@ gpxLayer.getSource().addEventListener("addfeature", function () {
   });
 });
 
+function getFileFormat(fileExtention) {
+  if (fileExtention === "gpx") {
+    return new GPX();
+  } else if (fileExtention === "kml") {
+    return new KML({ extractStyles: false });
+  } else if (fileExtention === "geojson") {
+    return new GeoJSON();
+  }
+}
+
 // gpx loader
 function handleFileSelect(evt) {
-  let fileFormat;
   const files = evt.target.files; // FileList object
   // remove previously loaded gpx files
   gpxLayer.getSource().clear();
@@ -668,14 +677,7 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      const fileExtention = files[0].name.split(".").pop().toLowerCase();
-      if (fileExtention === "gpx") {
-        fileFormat = new GPX();
-      } else if (fileExtention === "kml") {
-        fileFormat = new KML({ extractStyles: false });
-      } else if (fileExtention === "geojson") {
-        fileFormat = new GeoJSON();
-      }
+      const fileFormat = getFileFormat(files[0].name.split(".").pop().toLowerCase());
       const gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
@@ -725,17 +727,9 @@ function handleFileSelect(evt) {
 
 if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
-    let fileFormat;
     for (const file of launchParams.files) {
       // load file 
-      const fileExtention = file.name.split(".").pop().toLowerCase();
-      if (fileExtention === "gpx") {
-        fileFormat = new GPX();
-      } else if (fileExtention === "kml") {
-        fileFormat = new KML({ extractStyles: false });
-      } else if (fileExtention === "geojson") {
-        fileFormat = new GeoJSON();
-      }
+      const fileFormat = getFileFormat(file.name.split(".").pop().toLowerCase());
       const f = await file.getFile();
       const content = await f.text();
       const gpxFeatures = fileFormat.readFeatures(content, {
