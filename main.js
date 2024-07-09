@@ -36,6 +36,7 @@ const savePoiButton = document.getElementById("savePoiButton");
 const savePoiNameButton = document.getElementById("savePoiNameButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
+const reverseRoute = document.getElementById("reverseRoute");
 let gpxFileName;
 let poiCoordinate;
 let trackLength = 0;
@@ -132,6 +133,11 @@ document.getElementById("shareRouteButton").onclick = async () => {
     navigator.clipboard.writeText(buildLinkCode());
     document.getElementById("shareRouteButton").innerHTML = "kopierad!";
   }
+}
+
+reverseRoute.onclick = function () {
+  trackLineString.setCoordinates(trackLineString.getCoordinates().reverse());
+  routeMe();
 }
 
 const overlay = new Overlay({
@@ -563,6 +569,7 @@ function routeMe() {
     straightPoints.join(",");
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
+    reverseRoute.style.display = "unset";
     fetch(brouterUrl).then(function (response) {
       response.json().then(function (result) {
         trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
@@ -580,6 +587,8 @@ function routeMe() {
         }).getGeometry().getCoordinates());
       });
     });
+  } else {
+    reverseRoute.style.display = "none";
   }
 }
 
