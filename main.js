@@ -304,6 +304,7 @@ const trackPointsLayer = new VectorLayer({
   source: new VectorSource({
   }),
   style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
     return routeStyle[feature.get("type")];
   },
 });
@@ -412,9 +413,9 @@ function toCoordinateString(coordinate) {
 function buildLinkCode() {
   const destinationPoints = [];
   const poiPoints = [];
-  
-  let linkCode = "https://jole84.se/nav-app/index.html?";  
-  
+
+  let linkCode = "https://jole84.se/nav-app/index.html?";
+
   trackPointsLayer.getSource().forEachFeature(function (feature) {
     destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
   });
@@ -423,14 +424,14 @@ function buildLinkCode() {
     linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
   }
 
-  
+
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
     });
     linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
-  
+
   document.getElementById("linkCodeDiv").innerHTML = linkCode;
   return linkCode;
 }
@@ -631,10 +632,10 @@ function routeMe() {
           "Restid: " +
           new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
 
-          route.setCoordinates(new GeoJSON().readFeature(result.features[0], {
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857"
-          }).getGeometry().getCoordinates());
+        route.setCoordinates(new GeoJSON().readFeature(result.features[0], {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857"
+        }).getGeometry().getCoordinates());
 
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
@@ -644,11 +645,8 @@ function routeMe() {
             name: translateVoicehint(voicehints[i]),
             geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
           });
-          routeLineLayer.getSource().addFeature(marker);
+          trackPointsLayer.getSource().addFeature(marker);
         }
-
-        // finally add route to map
-        routeLineLayer.getSource().addFeature(routeGeometry);
       });
     });
   } else {
