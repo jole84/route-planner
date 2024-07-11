@@ -71,6 +71,16 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 
+document.getElementById("clearMapButton").addEventListener("click", function () {
+  trackPointStraight = {};
+  trackPointsLayer.getSource().clear();
+  poiLayer.getSource().clear();
+  trackLineString.setCoordinates([]);
+  route.setCoordinates([]);
+  gpxLayer.getSource().clear();
+  showGPXdiv.style.display = "none";
+});
+
 document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
@@ -80,39 +90,6 @@ document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("map").style.pointerEvents = "unset";
   document.getElementById("map").style.filter = "unset";
 };
-
-function toCoordinateString(coordinate) {
-  if (coordinate[1] > 100) {
-    coordinate = toLonLat(coordinate);
-  }
-  return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
-}
-
-function buildLinkCode() {
-  const destinationPoints = [];
-  const poiPoints = [];
-  
-  let linkCode = "https://jole84.se/nav-app/index.html?";  
-  
-  trackPointsLayer.getSource().forEachFeature(function (feature) {
-    destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
-  });
-
-  if (destinationPoints.length > 0) {
-    linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
-  }
-
-  
-  if (poiLayer.getSource().getFeatures().length > 0) {
-    poiLayer.getSource().forEachFeature(function (feature) {
-      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
-    });
-    linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
-  }
-  
-  document.getElementById("linkCodeDiv").innerHTML = linkCode;
-  return linkCode;
-}
 
 document.getElementById("help").onclick = function () {
   buildLinkCode();
@@ -250,7 +227,6 @@ const routeStyle = {
     }),
   }),
 };
-routeStyle["MultiLineString"] = routeStyle["LineString"];
 
 const gpxStyle = {
   Point: new Style({
@@ -290,6 +266,7 @@ const gpxStyle = {
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
 gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
+routeStyle["MultiLineString"] = routeStyle["LineString"];
 
 const route = new LineString([]);
 const routeLineFeature = new Feature({
@@ -372,7 +349,6 @@ const view = new View({
   enableRotation: false,
 });
 
-const keyboardPan = new KeyboardPan({ pixelDelta: 64 });
 const modifyTrackLine = new Modify({ source: trackLineLayer.getSource() });
 const modifypoi = new Modify({ source: poiLayer.getSource() });
 
@@ -395,7 +371,7 @@ const map = new Map({
   overlays: [overlay],
 });
 
-map.addInteraction(keyboardPan);
+map.addInteraction(new KeyboardPan({ pixelDelta: 64 }));
 
 modifyTrackLine.on("modifyend", function () {
   routeMe();
@@ -425,6 +401,39 @@ layerSelector.addEventListener("change", function () {
   switchMap();
 });
 
+function toCoordinateString(coordinate) {
+  if (coordinate[1] > 100) {
+    coordinate = toLonLat(coordinate);
+  }
+  return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
+}
+
+function buildLinkCode() {
+  const destinationPoints = [];
+  const poiPoints = [];
+  
+  let linkCode = "https://jole84.se/nav-app/index.html?";  
+  
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
+  });
+
+  if (destinationPoints.length > 0) {
+    linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
+  }
+
+  
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    poiLayer.getSource().forEachFeature(function (feature) {
+      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
+    });
+    linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
+  }
+  
+  document.getElementById("linkCodeDiv").innerHTML = linkCode;
+  return linkCode;
+}
+
 function switchMap() {
   layerSelector.value = localStorage.routePlannerMapMode;
   slitlagerkarta.setVisible(false);
@@ -453,7 +462,6 @@ function switchMap() {
     osm.setVisible(true);
   }
 }
-switchMap();
 
 function getPixelDistance(pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
@@ -539,7 +547,6 @@ function updateInfo() {
     '" target="_blank">Gmap</a>';
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
 }
-updateInfo();
 
 function isTouchDevice() {
   return (
@@ -652,22 +659,6 @@ function getPointType(i) {
   }
 }
 
-gpxLayer.getSource().addEventListener("addfeature", function () {
-  showGPXdiv.style.display = "inline-block";
-  gpxLayer.getSource().once("change", function () {
-    showGPX.checked = true;
-    gpxLayer.setVisible(true);
-    if (gpxLayer.getSource().getState() === "ready") {
-      const padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        duration: 500,
-        maxZoom: 15,
-      });
-    }
-  });
-});
-
 function getFileFormat(fileExtention) {
   if (fileExtention === "gpx") {
     return new GPX();
@@ -750,6 +741,23 @@ if ("launchQueue" in window) {
     }
   });
 }
+
+
+gpxLayer.getSource().addEventListener("addfeature", function () {
+  showGPXdiv.style.display = "inline-block";
+  gpxLayer.getSource().once("change", function () {
+    showGPX.checked = true;
+    gpxLayer.setVisible(true);
+    if (gpxLayer.getSource().getState() === "ready") {
+      const padding = 100;
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        duration: 500,
+        maxZoom: 15,
+      });
+    }
+  });
+});
 
 touchFriendlyCheck.addEventListener("change", function () {
   if (touchFriendlyCheck.checked) {
@@ -978,14 +986,7 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
   poiLayer.getSource().addFeature(poiMarker);
 });
 
+// run funtions at page load
 buildLinkCode();
-
-document.getElementById("clearMapButton").addEventListener("click", function () {
-  trackPointStraight = {};
-  trackPointsLayer.getSource().clear();
-  poiLayer.getSource().clear();
-  trackLineString.setCoordinates([]);
-  route.setCoordinates([]);
-  gpxLayer.getSource().clear();
-  showGPXdiv.style.display = "none";
-});
+updateInfo();
+switchMap();
