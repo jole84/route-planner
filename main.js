@@ -589,9 +589,9 @@ function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceT
   if (roundaboutExit > 0) {
     returnString += nummer[roundaboutExit] + " utfarten";
   }
-  if (distanceToNext < 1000) {
-    returnString += ",\nfortsätt i " + Math.round(distanceToNext) + "m"
-  }
+  // if (distanceToNext < 1000) {
+  //   returnString += ",\nfortsätt i " + Math.round(distanceToNext) + "m"
+  // }
   if (distanceToNext > 1000) {
     returnString += ",\nfortsätt i " + Math.round(distanceToNext / 1000) + "km"
   }
@@ -640,12 +640,15 @@ function routeMe() {
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
         for (var i = 0; i < voicehints.length; i++) {
-          const marker = new Feature({
-            type: "routePoint",
-            name: translateVoicehint(voicehints[i]),
-            geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
-          });
-          trackPointsLayer.getSource().addFeature(marker);
+          const allowedTurnType = [2, 5, 13, 14];
+          if (allowedTurnType.includes(voicehints[i][1])) {
+            const marker = new Feature({
+              type: "routePoint",
+              name: translateVoicehint(voicehints[i]),
+              geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
+            });
+            trackPointsLayer.getSource().addFeature(marker);
+          }
         }
       });
     });
@@ -668,6 +671,20 @@ function route2gpx() {
     for (const element of poiLayer.getSource().getFeatures()) {
       const lonlat = toLonLat(element.getGeometry().getCoordinates());
       const name = element.get("name");
+      gpxFile += `
+  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
+    }
+  }
+
+  if(trackPointsLayer.getSource().getFeatures().length > 2) {
+    for (const element of trackPointsLayer.getSource().getFeatures()) {
+      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+      let name = element.get("name");
+      if (element.getId() == 0) {
+        name = "Start";
+      } else if (element.getId() == 1) {
+        name = "Stop";
+      }
       gpxFile += `
   <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
     }
