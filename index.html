@@ -3,6 +3,8 @@
 
 <head>
   <link rel="manifest" href="manifest.json" />
+  <!-- MDB -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
   <!-- Google Fonts -->
@@ -15,242 +17,15 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet" />
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg" href="https://jole84.se/84.svg" />
-  <meta name="HandheldFriendly" content="true" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <title>jole84 Ruttplanerare</title>
-  <style>
-    :root {
-      touch-action: pan-x pan-y;
-      height: 100%
-    }
-
-    html,
-    body,
-    #map {
-      background-color: #bfe6ff;
-      overscroll-behavior-y: contain !important;
-      touch-action: none;
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    #map {
-      pointer-events: none;
-      filter: blur(5px) brightness(0.8);
-    }
-
-    .lowerRightGroup {
-      position: absolute;
-      z-index: 10;
-      bottom: 5px;
-      right: 5px;
-      text-align: right;
-      max-width: 75%;
-    }
-
-    .btn-group-lg {
-      margin-bottom: 5px;
-      /* min-width: 100px;
-        min-height: 150px; */
-    }
-
-    .lowerLeftGroup {
-      position: absolute;
-      z-index: 10;
-      bottom: 5px;
-      left: 5px;
-      -webkit-transition: scale 200ms;
-      transition: scale 200ms;
-      transform-origin: left bottom;
-      max-width: 50%;
-      word-wrap: break-word;
-    }
-
-    .infoGroup {
-      font-family: "B612";
-      backdrop-filter: blur(5px);
-      background-color: rgba(251, 251, 251, 0.6);
-      border-radius: 5px;
-      border: 1px solid rgb(32, 32, 32);
-      color: rgb(32, 32, 32);
-      font-size: 1.1em;
-      letter-spacing: 1.3px;
-      line-height: 1.4;
-      max-width: 90%;
-      padding-left: 5px;
-      padding-right: 5px;
-      position: absolute;
-      right: 5px;
-      top: 5px;
-      word-wrap: break-word;
-      z-index: 10;
-    }
-
-    .optionGroup {
-      z-index: 10;
-      bottom: 5px;
-      left: 5px;
-    }
-
-    .textBox {
-      position: absolute;
-      min-width: 350px;
-      max-width: 550px;
-      max-height: 100%;
-      left: 50%;
-      top: 50%;
-      color: rgb(32, 32, 32);
-      background-color: rgba(251, 251, 251, 1);
-      border: 1px solid rgb(32, 32, 32);
-      border-radius: 5px;
-      z-index: 10;
-      word-wrap: break-word;
-      padding: 10px;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-      overflow: auto;
-    }
-
-    #helpTextOk {
-      float: right;
-    }
-
-    #gpxFileNameInput {
-      display: none;
-    }
-
-    #gpxFileNameInputOk {
-      float: right;
-    }
-
-    /* @media only screen and (max-width: 600px) {
-      .lowerLeftGroup {
-        -webkit-transition: scale 200ms;
-        transition: scale 200ms;
-        transform-origin: left bottom;
-        scale: 0.5;
-      }
-
-      .lowerLeftGroup:hover {
-        -webkit-transition: scale 200ms;
-        transition: scale 200ms;
-        display: inline-block;
-        scale: 1.5;
-      }
-    } */
-
-    #savePoiNameButton {
-      margin-top: 12px;
-    }
-
-    #fileNameForm {
-      text-align: right;
-    }
-
-    #customFileButton {
-      width: 83px;
-    }
-
-    #showGPXdiv {
-      display: none;
-    }
-
-    #layerSelector {
-      display: inline-flex;
-      margin-bottom: 5px;
-    }
-
-    #crosshair {
-      pointer-events: none;
-      opacity: 0.5;
-      -ms-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-      position: absolute;
-      z-index: 10;
-      top: 50%;
-      left: 50%;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    .ol-popup {
-      position: absolute;
-      background-color: white;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #cccccc;
-      bottom: 12px;
-      left: -50px;
-      min-width: 250px;
-    }
-
-    .ol-popup:after,
-    .ol-popup:before {
-      top: 100%;
-      border: solid transparent;
-      content: " ";
-      height: 0;
-      width: 0;
-      position: absolute;
-      pointer-events: none;
-    }
-
-    .ol-popup:after {
-      border-top-color: white;
-      border-width: 10px;
-      left: 48px;
-      margin-left: -10px;
-    }
-
-    .ol-popup:before {
-      border-top-color: #cccccc;
-      border-width: 11px;
-      left: 48px;
-      margin-left: -11px;
-    }
-
-    .ol-popup-closer {
-      text-decoration: none;
-      position: absolute;
-      top: 2px;
-      right: 8px;
-    }
-
-    .ol-popup-closer:after {
-      content: "✖";
-    }
-
-    .popup-content {
-      margin-bottom: 8px;
-    }
-  </style>
 </head>
 
-<body oncontextmenu="return false;">
-  <!-- MDB -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
+<body>
   <script type="module" src="./main.js"></script>
   <div id="map">
-
-
-    <div class="lowerRightGroup" id="lowerRightGroup">
-      <div class="btn-group-vertical btn-group-lg" role="group">
-        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
-      </div>
-      <br>
-      <button class="btn btn-primary" id="help">hjälp</button>
-      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
-    </div>
 
     <div class="infoGroup" id="infoGroup">
       <div id="coordsDiv"></div>
@@ -258,31 +33,40 @@
       <div id="info2"></div>
       <div id="info3"></div>
       <div id="info4"></div>
-      <div id="touchFriendly" class="form-check">
+      <div id="touchFriendly">
         <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
-        <label class="form-check-label" for="touchFriendlyCheck">touch</label>
+        <label class="form-check-label" for="touchFriendlyCheck">Inaktivera touch</label>
       </div>
       <div id="showGPXdiv">
         <input class="form-check-input" type="checkbox" value="" id="showGPX" checked />
         <label class="form-check-label" for="showGPX">Visa GPX</label><br>
         <button class="btn btn-info" id="gpxToRouteButton">omvandla GPX till rutt</button>
       </div>
+      <div>
+        <button class="btn btn-primary" id="reverseRoute">Vänd rutt</button>
+      </div>
     </div>
 
-    <div class="lowerLeftGroup">
-      <div class="optionGroup">
-        <select class="form-select" id="layerSelector">
-          <option value="0">Jole84 Terrängkarta</option>
-          <option value="1">Jole84 Vägkarta</option>
-          <option value="2">Lantmäteriet Topo</option>
-          <option value="3">Lantmäteriet Orto</option>
-          <option value="4">OpenStreetMap</option>
-        </select>
-        <br>
-        <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
-        <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
-        <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
+    <div class="optionButtons" id="lowerRightGroup">
+      <div class="btn-group-vertical btn-group-lg" role="group" id="addRemoveButtons">
+        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
+        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
       </div>
+      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
+    </div>
+
+    <div class="optionButtons" id="lowerLeftGroup">
+      <button class="btn btn-success" id="help">meny</button>
+      <select class="form-select" id="layerSelector">
+        <option value="0">Jole84 Terrängkarta</option>
+        <option value="1">Jole84 Vägkarta</option>
+        <option value="2">Lantmäteriet Topo</option>
+        <option value="3">Lantmäteriet Orto</option>
+        <option value="4">OpenStreetMap</option>
+      </select>
+      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
+      <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
+      <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
     </div>
 
     <div id="popup" class="ol-popup">
@@ -315,6 +99,18 @@
     <kbd>Ctrl + vänsterklick</kbd> öppna streetview<br>
     <kbd>Shift + högerklick</kbd> lägg till offroad waypoint<br>
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
+
+    <br>
+    <button class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg"
+        width="50px"><br>Webbaserad <br>navigationsapp</button>
+
+    <button class="btn btn-success" id="shareRouteButton">Dela rutt</button>
+
+    <code class="user-select-all" id="linkCodeDiv">https://jole84.se/nav-app/index.html</code>
+    <hr>
+    <!-- <code class="user-select-all" id="linkCodeDiv2"></code> -->
+    <!-- <br> -->
+    <!-- <a href="https://jole84.se/nav-app/index.html" id="nav-link">Direktnavigering</a> -->
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
 
@@ -324,7 +120,9 @@
     <button class="btn btn-danger" id="gpxFileNameInputCancel">Avbryt</button>
     <button class="btn btn-primary" id="gpxFileNameInputOk">OK</button>
   </div>
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml" style="display: none;" />
+
+  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
+    style="display: none;" />
 
 </body>
 

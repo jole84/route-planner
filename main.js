@@ -6,8 +6,7 @@ import { Stroke, Style, Icon, Fill, Text } from "ol/style.js";
 import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
-import GeoJSON from "ol/format/GeoJSON.js";
-import GPX from "ol/format/GPX.js";
+import { GPX, GeoJSON, KML } from 'ol/format.js';
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
 import LineString from "ol/geom/LineString";
 import OSM from "ol/source/OSM.js";
@@ -23,8 +22,8 @@ const addPositionButton = document.getElementById("addPositionButton");
 const coordsDiv = document.getElementById("coordsDiv");
 const defaultCenter = [1700000, 8500000];
 const defaultZoom = 5;
+const exportRouteButton = document.getElementById("exportRouteButton");
 const fileNameInput = document.getElementById("fileNameInput");
-const gpxFormat = new GPX();
 const info2Div = document.getElementById("info2");
 const info3Div = document.getElementById("info3");
 const info4Div = document.getElementById("info4");
@@ -35,12 +34,12 @@ const popupContainer = document.getElementById("popup");
 const removePositionButton = document.getElementById("removePositionButton");
 const savePoiButton = document.getElementById("savePoiButton");
 const savePoiNameButton = document.getElementById("savePoiNameButton");
-const exportRouteButton = document.getElementById("exportRouteButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
-let poiCoordinate;
+const reverseRoute = document.getElementById("reverseRoute");
 let gpxFileName;
-let trackLength;
+let poiCoordinate;
+let trackLength = 0;
 let trackPointStraight = {};
 localStorage.centerCoordinate = localStorage.centerCoordinate || JSON.stringify(defaultCenter);
 localStorage.centerZoom = localStorage.centerZoom || defaultZoom;
@@ -53,7 +52,7 @@ removePositionButton.onclick = removePositionButtonFunction;
 savePoiButton.onclick = savePoiPopup;
 
 exportRouteButton.onclick = function () {
-  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleString().replaceAll(" ", "_");
+  document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleDateString().replaceAll(" ", "_") + "_" + trackLength.toFixed(2) + "km";
   document.getElementById("gpxFileNameInput").style.display = "unset";
   document.getElementById("gpxFileName").select();
 }
@@ -72,6 +71,16 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 
+document.getElementById("clearMapButton").addEventListener("click", function () {
+  trackPointStraight = {};
+  trackPointsLayer.getSource().clear();
+  poiLayer.getSource().clear();
+  trackLineString.setCoordinates([]);
+  route.setCoordinates([]);
+  gpxLayer.getSource().clear();
+  showGPXdiv.style.display = "none";
+});
+
 document.getElementById("clickFileButton").onclick = function () {
   customFileButton.click();
 }
@@ -83,8 +92,30 @@ document.getElementById("helpTextOk").onclick = function () {
 };
 
 document.getElementById("help").onclick = function () {
+  buildLinkCode();
   document.getElementById("helpText").style.display = "unset";
+  document.getElementById("shareRouteButton").innerHTML = "dela rutt";
 };
+
+document.getElementById("navAppButton").onclick = function () {
+  window.location.href = buildLinkCode();
+};
+
+document.getElementById("shareRouteButton").onclick = async () => {
+  if (navigator.share) {
+    await navigator.share({
+      url: buildLinkCode(),
+    });
+  } else {
+    navigator.clipboard.writeText(buildLinkCode());
+    document.getElementById("shareRouteButton").innerHTML = "kopierad!";
+  }
+}
+
+reverseRoute.onclick = function () {
+  trackLineString.setCoordinates(trackLineString.getCoordinates().reverse());
+  routeMe();
+}
 
 const overlay = new Overlay({
   element: popupContainer,
@@ -102,7 +133,6 @@ popupCloser.onclick = function () {
 };
 
 savePoiNameButton.onclick = function () {
-  // const coordinate = toLonLat(poiCoordinate);
   const fileName = fileNameInput.value;
   const poiMarker = new Feature({
     routeFeature: true,
@@ -156,6 +186,7 @@ const topoweb = new TileLayer({
 });
 
 const osm = new TileLayer({
+  className: "saturated",
   source: new OSM(),
   visible: false,
 });
@@ -196,7 +227,6 @@ const routeStyle = {
     }),
   }),
 };
-routeStyle["MultiLineString"] = routeStyle["LineString"];
 
 const gpxStyle = {
   Point: new Style({
@@ -224,22 +254,41 @@ const gpxStyle = {
       width: 10,
     }),
   }),
+  Polygon: new Style({
+    stroke: new Stroke({
+      color: [255, 0, 0, 1],
+      width: 5,
+    }),
+    fill: new Fill({
+      color: [255, 0, 0, 0.2],
+    }),
+  }),
 };
 gpxStyle["MultiLineString"] = gpxStyle["LineString"];
+gpxStyle["MultiPolygon"] = gpxStyle["Polygon"];
+routeStyle["MultiLineString"] = routeStyle["LineString"];
+
+const route = new LineString([]);
+const routeLineFeature = new Feature({
+  type: "routeLine",
+  geometry: route,
+});
+
+const routeLineLayer = new VectorLayer({
+  source: new VectorSource({
+    features: [routeLineFeature],
+  }),
+  style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
+    return routeStyle[feature.get("type")];
+  },
+});
 
 const trackLineString = new LineString([]);
 const trackLineFeature = new Feature({
   type: "trackLine",
   routeFeature: true,
   geometry: trackLineString,
-});
-
-const routeLineLayer = new VectorLayer({
-  source: new VectorSource(),
-  style: function (feature) {
-    routeStyle["routePoint"].getText().setText(feature.get("name"));
-    return routeStyle[feature.get("type")];
-  },
 });
 
 const trackLineLayer = new VectorLayer({
@@ -301,7 +350,6 @@ const view = new View({
   enableRotation: false,
 });
 
-const keyboardPan = new KeyboardPan({ pixelDelta: 64 });
 const modifyTrackLine = new Modify({ source: trackLineLayer.getSource() });
 const modifypoi = new Modify({ source: poiLayer.getSource() });
 
@@ -324,7 +372,7 @@ const map = new Map({
   overlays: [overlay],
 });
 
-map.addInteraction(keyboardPan);
+map.addInteraction(new KeyboardPan({ pixelDelta: 64 }));
 
 modifyTrackLine.on("modifyend", function () {
   routeMe();
@@ -337,7 +385,6 @@ trackPointsLayer.on("change", function () {
 })
 
 trackLineString.addEventListener("change", function () {
-
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
@@ -354,6 +401,39 @@ layerSelector.addEventListener("change", function () {
   localStorage.routePlannerMapMode = layerSelector.value;
   switchMap();
 });
+
+function toCoordinateString(coordinate) {
+  if (coordinate[1] > 100) {
+    coordinate = toLonLat(coordinate);
+  }
+  return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
+}
+
+function buildLinkCode() {
+  const destinationPoints = [];
+  const poiPoints = [];
+  
+  let linkCode = "https://jole84.se/nav-app/index.html?";  
+  
+  trackPointsLayer.getSource().forEachFeature(function (feature) {
+    destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
+  });
+
+  if (destinationPoints.length > 0) {
+    linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
+  }
+
+  
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    poiLayer.getSource().forEachFeature(function (feature) {
+      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
+    });
+    linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
+  }
+  
+  document.getElementById("linkCodeDiv").innerHTML = linkCode;
+  return linkCode;
+}
 
 function switchMap() {
   layerSelector.value = localStorage.routePlannerMapMode;
@@ -383,7 +463,6 @@ function switchMap() {
     osm.setVisible(true);
   }
 }
-switchMap();
 
 function getPixelDistance(pixel, pixel2) {
   return Math.sqrt((pixel[1] - pixel2[1]) * (pixel[1] - pixel2[1]) + (pixel[0] - pixel2[0]) * (pixel[0] - pixel2[0]));
@@ -437,7 +516,7 @@ function removePosition(pixel) {
   }
 
   // remove poi
-  if (closestPoi != undefined) {
+  if (closestPoi != undefined && !removedItem) {
     if (getPixelDistance(pixel, map.getPixelFromCoordinate(closestPoi.getGeometry().getCoordinates())) < 40) {
       poiLayer.getSource().removeFeature(closestPoi);
       removedItem = true;
@@ -446,7 +525,7 @@ function removePosition(pixel) {
 
   // if only 1 wp, remove route and redraw startpoint
   if (trackPointsLayer.getSource().getFeatures().length == 1) {
-    routeLineLayer.getSource().clear();
+    route.setCoordinates([]);
     infoDiv.innerHTML = "";
     info2Div.innerHTML = "";
     info3Div.innerHTML = "";
@@ -469,7 +548,6 @@ function updateInfo() {
     '" target="_blank">Gmap</a>';
   info4Div.innerHTML = streetviewlink + "<br>" + gmaplink;
 }
-updateInfo();
 
 function isTouchDevice() {
   return (
@@ -523,11 +601,9 @@ routeStyle["routePoint"] = gpxStyle["Point"];
 function routeMe() {
   const coordsString = [];
   const straightPoints = [];
-  trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
-    coordsString.push(toLonLat(coordinate));
-  });
 
   trackPointsLayer.getSource().forEachFeature(function (feature) {
+    coordsString[feature.getId()] = toLonLat(feature.getGeometry().getCoordinates());
     if (feature.get("straight")) {
       straightPoints.push(feature.getId());
     }
@@ -543,15 +619,9 @@ function routeMe() {
     "&timode=2";
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
+    reverseRoute.style.display = "unset";
     fetch(brouterUrl).then(function (response) {
       response.json().then(function (result) {
-        const route = new GeoJSON()
-          .readFeature(result.features[0], {
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857",
-          })
-          .getGeometry();
-
         trackLength = result.features[0].properties["track-length"] / 1000; // track-length in km
         const totalTime = result.features[0].properties["total-time"] * 1000; // track-time in milliseconds
 
@@ -561,13 +631,10 @@ function routeMe() {
           "Restid: " +
           new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
 
-        const routeGeometry = new Feature({
-          type: "routeLine",
-          geometry: route,
-        });
-
-        // remove previus route
-        routeLineLayer.getSource().clear();
+          route.setCoordinates(new GeoJSON().readFeature(result.features[0], {
+            dataProjection: "EPSG:4326",
+            featureProjection: "EPSG:3857"
+          }).getGeometry().getCoordinates());
 
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
@@ -579,62 +646,60 @@ function routeMe() {
           });
           routeLineLayer.getSource().addFeature(marker);
         }
+
         // finally add route to map
         routeLineLayer.getSource().addFeature(routeGeometry);
       });
     });
   } else {
-    routeLineLayer.getSource().clear();
+    reverseRoute.style.display = "none";
   }
 }
 
 function route2gpx() {
-  const poiString = [];
-  const coordsString = [];
-  const straightPoints = [];
-  trackLineFeature.getGeometry().getCoordinates().forEach(function (coordinate) {
-    coordsString.push(toLonLat(coordinate));
-  });
+  let routeExist = false;
+  let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gpx version="1.1" creator="jole84 route-planner">
+  <metadata>
+    <desc>GPX file created by jole84 route-planner</desc>
+  </metadata>`;
 
-  trackPointsLayer.getSource().forEachFeature(function (feature) {
-    if (feature.get("straight")) {
-      straightPoints.push(feature.getId());
-    }
-  });
-
-  poiLayer.getSource().forEachFeature(function (feature) {
-    poiString.push([toLonLat(feature.getGeometry().getCoordinates()), feature.get("name")]);
-  });
-
-  if (trackPointsLayer.getSource().getFeatures().length >= 2) {
-    let brouterUrl =
-      "https://brouter.de/brouter?lonlats=" +
-      coordsString.join("|") +
-      "&profile=car-fast&alternativeidx=0&format=gpx&trackname=" + gpxFileName + "_" +
-      trackLength.toFixed(2) +
-      "km" +
-      "&straight=" +
-      straightPoints.join(",");
-
-    if (poiString.length >= 1) {
-      brouterUrl += "&pois=" + poiString.join("|");
-    }
-    window.location = brouterUrl;
-  } else if (poiString.length >= 1) {
-    // simple gpx file if no route is created
-    let gpxFile = `<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gpx version="1.1" creator="jole84 webapp">
-<metadata>
-  <desc>GPX log created by jole84 webapp</desc>
-</metadata>`;
-
-    for (let i = 0; i < poiString.length; i++) {
+  // for each poi
+  if (poiLayer.getSource().getFeatures().length > 0) {
+    routeExist = true;
+    for (const element of poiLayer.getSource().getFeatures()) {
+      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+      const name = element.get("name");
       gpxFile += `
-  <wpt lat="${poiString[i][0][1]}" lon="${poiString[i][0][0]}"><name>${poiString[i][1]}</name></wpt>`;
+  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
     }
+  }
 
+  if (route.getCoordinates().length > 0) {
+    routeExist = true;
     gpxFile += `
+  <trk>
+    <name>${gpxFileName}</name>
+    <trkseg>`;
+
+    // for each trkpt
+    route.forEachSegment(function (segment) {
+      const lonlat = toLonLat(segment);
+      gpxFile += `
+      <trkpt lon="${lonlat[0]}" lat="${lonlat[1]}"><ele>${lonlat[2] || 0}</ele></trkpt>`;
+    });
+
+    // end of trkseg
+    gpxFile += `
+    </trkseg>
+  </trk>`;
+  }
+
+  // write end of file
+  gpxFile += `
 </gpx>`;
+
+  if (routeExist) {
     const file = new Blob([gpxFile], { type: "application/gpx+xml" });
     console.log(gpxFile, gpxFileName);
     saveAs(file, gpxFileName + ".gpx");
@@ -651,21 +716,15 @@ function getPointType(i) {
   }
 }
 
-gpxLayer.getSource().addEventListener("addfeature", function () {
-  showGPXdiv.style.display = "inline-block";
-  gpxLayer.getSource().once("change", function () {
-    showGPX.checked = true;
-    gpxLayer.setVisible(true);
-    if (gpxLayer.getSource().getState() === "ready") {
-      const padding = 100;
-      view.fit(gpxLayer.getSource().getExtent(), {
-        padding: [padding, padding, padding, padding],
-        duration: 500,
-        maxZoom: 15,
-      });
-    }
-  });
-});
+function getFileFormat(fileExtention) {
+  if (fileExtention === "gpx") {
+    return new GPX();
+  } else if (fileExtention === "kml") {
+    return new KML({ extractStyles: false });
+  } else if (fileExtention === "geojson") {
+    return new GeoJSON();
+  }
+}
 
 // gpx loader
 function handleFileSelect(evt) {
@@ -676,7 +735,8 @@ function handleFileSelect(evt) {
     const reader = new FileReader();
     reader.readAsText(files[i], "UTF-8");
     reader.onload = function (evt) {
-      const gpxFeatures = gpxFormat.readFeatures(evt.target.result, {
+      const fileFormat = getFileFormat(files[0].name.split(".").pop().toLowerCase());
+      const gpxFeatures = fileFormat.readFeatures(evt.target.result, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
@@ -727,9 +787,10 @@ if ("launchQueue" in window) {
   launchQueue.setConsumer(async (launchParams) => {
     for (const file of launchParams.files) {
       // load file 
+      const fileFormat = getFileFormat(file.name.split(".").pop().toLowerCase());
       const f = await file.getFile();
       const content = await f.text();
-      const gpxFeatures = new GPX().readFeatures(content, {
+      const gpxFeatures = fileFormat.readFeatures(content, {
         dataProjection: "EPSG:4326",
         featureProjection: "EPSG:3857",
       });
@@ -737,6 +798,23 @@ if ("launchQueue" in window) {
     }
   });
 }
+
+
+gpxLayer.getSource().addEventListener("addfeature", function () {
+  showGPXdiv.style.display = "inline-block";
+  gpxLayer.getSource().once("change", function () {
+    showGPX.checked = true;
+    gpxLayer.setVisible(true);
+    if (gpxLayer.getSource().getState() === "ready") {
+      const padding = 100;
+      view.fit(gpxLayer.getSource().getExtent(), {
+        padding: [padding, padding, padding, padding],
+        duration: 500,
+        maxZoom: 15,
+      });
+    }
+  });
+});
 
 touchFriendlyCheck.addEventListener("change", function () {
   if (touchFriendlyCheck.checked) {
@@ -751,8 +829,7 @@ if (isTouchDevice()) {
   touchFriendlyCheck.checked = true;
 } else {
   document.getElementById("touchFriendly").style.display = "none";
-  document.getElementById("addPositionButton").style.display = "none";
-  document.getElementById("removePositionButton").style.display = "none";
+  document.getElementById("addRemoveButtons").style.display = "none";
   map.addInteraction(modifyTrackLine);
   map.addInteraction(modifypoi);
 }
@@ -763,6 +840,13 @@ function gpxToRoute() {
   trackLineString.setCoordinates([]);
 
   gpxLayer.getSource().forEachFeature(function (element) {
+    console.log(element.getGeometry().getType())
+    if (element.getGeometry().getType() === "LineString") {
+      element.getGeometry().simplify(500).getCoordinates().reverse().forEach(function (coordinate) {
+        trackLineString.appendCoordinate(coordinate);
+      });
+      routeMe();
+    }
     if (element.getGeometry().getType() === "MultiLineString") {
       element.getGeometry().simplify(500).getCoordinates()[0].forEach(function (coordinate) {
         trackLineString.appendCoordinate(coordinate);
@@ -811,6 +895,8 @@ map.on("singleclick", function (event) {
 });
 
 map.on("contextmenu", function (event) {
+  event.preventDefault();
+  // document.getElementById("helpText").style.display == "none" && !overlay.getPosition() && event.target.getAttribute("id") != "gpxFileName"
   if (!touchFriendlyCheck.checked) {
     if (event.originalEvent.shiftKey) {
       // if shift + click add offroad waypoint
@@ -957,13 +1043,7 @@ JSON.parse(localStorage.poiString).forEach(function (element) {
   poiLayer.getSource().addFeature(poiMarker);
 });
 
-document.getElementById("clearMapButton").addEventListener("click", function () {
-  trackPointStraight = {};
-  trackPointsLayer.getSource().clear();
-  poiLayer.getSource().clear();
-  trackLineString.setCoordinates([]);
-  routeLineLayer.getSource().clear();
-  gpxLayer.getSource().clear();
-  showGPXdiv.style.display = "none";
-});
-
+// run funtions at page load
+buildLinkCode();
+updateInfo();
+switchMap();
