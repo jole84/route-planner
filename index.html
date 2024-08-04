@@ -27,46 +27,46 @@
   <script type="module" src="./main.js"></script>
   <div id="map">
 
-    <div class="infoGroup" id="infoGroup">
+    <div id="infoGroup" class="infoGroup">
       <div id="coordsDiv"></div>
       <div id="info"></div>
       <div id="info2"></div>
       <div id="info3"></div>
       <div id="info4"></div>
       <div id="touchFriendly">
-        <input class="form-check-input" type="checkbox" value="" id="touchFriendlyCheck" />
-        <label class="form-check-label" for="touchFriendlyCheck">Inaktivera touch</label>
+        <input id="touchFriendlyCheck" class="form-check-input" type="checkbox" value=""/>
+        <label for="touchFriendlyCheck" class="form-check-label">Inaktivera touch</label>
       </div>
       <div id="showGPXdiv">
-        <input class="form-check-input" type="checkbox" value="" id="showGPX" checked />
-        <label class="form-check-label" for="showGPX">Visa GPX</label><br>
-        <button class="btn btn-info" id="gpxToRouteButton">omvandla GPX till rutt</button>
+        <input id="showGPX" class="form-check-input" type="checkbox" value="" checked />
+        <label for="showGPX" class="form-check-label">Visa GPX</label><br>
+        <button id="gpxToRouteButton" class="btn btn-info">omvandla GPX till rutt</button>
       </div>
       <div>
-        <button class="btn btn-primary" id="reverseRoute">Vänd rutt</button>
+        <button id="reverseRoute" class="btn btn-primary">Vänd rutt</button>
       </div>
     </div>
 
-    <div class="optionButtons" id="lowerRightGroup">
-      <div class="btn-group-vertical btn-group-lg" role="group" id="addRemoveButtons">
-        <button class="btn btn-success" id="addPositionButton">Lägg till +</button>
-        <button class="btn btn-danger" id="removePositionButton">Ta bort -</button>
+    <div id="lowerRightGroup" class="optionButtons">
+      <div id="addRemoveButtons" class="btn-group-vertical btn-group-lg" role="group">
+        <button id="addPositionButton" class="btn btn-success">Lägg till +</button>
+        <button id="removePositionButton" class="btn btn-danger">Ta bort -</button>
       </div>
-      <button class="btn btn-danger" id="savePoiButton">spara waypoint</button>
     </div>
 
-    <div class="optionButtons" id="lowerLeftGroup">
-      <button class="btn btn-success" id="help">meny</button>
-      <select class="form-select" id="layerSelector">
+    <div id="lowerLeftGroup" class="optionButtons">
+      <button id="clearMapButton" class="btn btn-danger">Rensa karta</button>
+      <button id="clickFileButton" class="btn btn-info">Ladda GPX</button>
+      <select id="layerSelector" class="form-select">
         <option value="0">Jole84 Terrängkarta</option>
         <option value="1">Jole84 Vägkarta</option>
         <option value="2">Lantmäteriet Topo</option>
         <option value="3">Lantmäteriet Orto</option>
         <option value="4">OpenStreetMap</option>
       </select>
-      <button class="btn btn-info" id="clickFileButton">Ladda GPX</button>
-      <button class="btn btn-warning" id="exportRouteButton">Exportera Rutt</button>
-      <button class="btn btn-danger" id="clearMapButton">Rensa karta</button>
+      <button id="menyButton" class="btn btn-success">meny</button>
+      <button id="savePoiButton" class="btn btn-danger">+ spara waypoint</button>
+      <button id="exportRouteButton" class="btn btn-warning">Exportera Rutt</button>
     </div>
 
     <div id="popup" class="ol-popup">
@@ -79,7 +79,7 @@
       </form>
     </div>
 
-    <svg version="1.1" height="60" width="60" id="crosshair" xmlns="http://www.w3.org/2000/svg"
+    <svg id="crosshair" version="1.1" height="60" width="60" xmlns="http://www.w3.org/2000/svg"
       xmlns:svg="http://www.w3.org/2000/svg">
       <line x1="30" y1="0" x2="30" y2="27" style="stroke:rgb(255,0,0);stroke-width:4" id="line1" />
       <line x1="0" y1="30" x2="27" y2="30" style="stroke:rgb(255,0,0);stroke-width:4" id="line2" />
@@ -88,7 +88,7 @@
     </svg>
   </div>
 
-  <div class="textBox" id="helpText">
+  <div id="helpText" class="textBox">
     <h2>Välkommen till Jole84 ruttplanerare!</h2>
     <p><img src="https://jole84.se/84.svg" height="30"> Jole84 ruttplanerare med <a
         href="https://github.com/jole84/route-planner">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet
@@ -114,15 +114,14 @@
     <button class="btn btn-primary" id="helpTextOk">OK</button>
   </div>
 
-  <div class="textBox" id="gpxFileNameInput">
+  <div id="gpxFileNameInput" class="textBox">
     <p>Ange filnamn:</p>
     <input class="form-control" id="gpxFileName" type="text" /><br>
     <button class="btn btn-danger" id="gpxFileNameInputCancel">Avbryt</button>
     <button class="btn btn-primary" id="gpxFileNameInputOk">OK</button>
   </div>
 
-  <input type="file" id="customFileButton" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
-    style="display: none;" />
+  <input id="customFileButton" type="file" multiple accept=".gpx,application/gpx+xml,.kml,.geojson" style="display: none;" />
 
 </body>
 

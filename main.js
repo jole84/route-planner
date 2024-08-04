@@ -91,7 +91,7 @@ document.getElementById("helpTextOk").onclick = function () {
   document.getElementById("map").style.filter = "unset";
 };
 
-document.getElementById("help").onclick = function () {
+document.getElementById("menyButton").onclick = function () {
   buildLinkCode();
   document.getElementById("helpText").style.display = "unset";
   document.getElementById("shareRouteButton").innerHTML = "dela rutt";
