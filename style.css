@@ -75,6 +75,11 @@ body,
 }
 
 .textBox {
+  background-image: linear-gradient(rgba(251,251,251,0.95), rgba(251,251,251,0.95)),url("https://jole84.se/84.svg");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+  background-size: 90%;
   position: absolute;
   min-width: 350px;
   max-width: min(90%, 550px);
