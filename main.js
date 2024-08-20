@@ -558,6 +558,7 @@ function isTouchDevice() {
   );
 }
 
+const allowedTurnType = [2, 4, 5, 7, 13, 14];
 function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceToNext, turnDeg]) {
   let returnString;
   const nummer = {
@@ -580,8 +581,8 @@ function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceT
     10: "U-sväng",
     11: "U-sväng höger",
     12: "Off route",
-    13: "I rondellen tag ",
-    14: "I rondellen tag ",
+    13: "I rondellen, tag ",
+    14: "I rondellen, tag ",
     15: "180 grader u-sväng",
     16: "Beeline routing",
   }
@@ -640,7 +641,6 @@ function routeMe() {
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
         for (var i = 0; i < voicehints.length; i++) {
-          const allowedTurnType = [2, 5, 13, 14];
           if (allowedTurnType.includes(voicehints[i][1])) {
             const marker = new Feature({
               type: "routePoint",
