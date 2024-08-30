@@ -603,13 +603,20 @@ routeStyle["routePoint"] = gpxStyle["Point"];
 function routeMe() {
   const coordsString = [];
   const straightPoints = [];
+  const localStoragetrackPoints = [];
 
   trackPointsLayer.getSource().forEachFeature(function (feature) {
     coordsString[feature.getId()] = toLonLat(feature.getGeometry().getCoordinates());
+    localStoragetrackPoints[feature.getId()] = [
+      feature.getGeometry().getCoordinates(),
+      feature.get("straight"),
+    ]
     if (feature.get("straight")) {
       straightPoints.push(feature.getId());
     }
   });
+
+  localStorage.trackPoints = JSON.stringify(localStoragetrackPoints);
 
   const brouterUrl =
     "https://brouter.de/brouter" +
@@ -1019,24 +1026,15 @@ function getPlaceName([lon, lat]) {
 window.onbeforeunload = function () {
   localStorage.centerCoordinate = JSON.stringify(view.getCenter());
   localStorage.centerZoom = view.getZoom();
+}
 
-  const trackPoints = [];
+poiLayer.getSource().addEventListener("change", function () {
   const poiString = [];
-
-  for (let i = 0; i < trackPointsLayer.getSource().getFeatures().length; i++) {
-    trackPoints.push([
-      trackPointsLayer.getSource().getFeatureById(i).getGeometry().getCoordinates(),
-      trackPointsLayer.getSource().getFeatureById(i).get("straight")
-    ])
-  }
-
   poiLayer.getSource().forEachFeature(function (feature) {
     poiString.push([feature.getGeometry().getCoordinates(), feature.get("name")]);
   });
-
-  localStorage.trackPoints = JSON.stringify(trackPoints);
   localStorage.poiString = JSON.stringify(poiString);
-}
+});
 
 // load features from localStorage
 JSON.parse(localStorage.trackPoints).forEach(function (element, index) {
