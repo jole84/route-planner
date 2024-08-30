@@ -686,14 +686,14 @@ function route2gpx() {
   if(trackPointsLayer.getSource().getFeatures().length > 2) {
     for (const element of trackPointsLayer.getSource().getFeatures()) {
       const lonlat = toLonLat(element.getGeometry().getCoordinates());
-      let name = element.get("name");
       if (element.getId() == 0) {
-        name = "Start";
+        element.set("name", "Start");
       } else if (element.getId() == 1) {
-        name = "Stop";
+        element.set("name", "Slut");
       }
+      console.log(element.getId(), element.get("name"));
       gpxFile += `
-  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
+  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
     }
   }
 
