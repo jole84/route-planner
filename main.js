@@ -71,6 +71,15 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 
+document.getElementById("enableVoiceHint").addEventListener("change", function () {
+  localStorage.enableVoiceHint = document.getElementById("enableVoiceHint").checked;
+  routeMe();
+});
+
+localStorage.enableVoiceHint = false;
+// localStorage.enableVoiceHint = JSON.parse(localStorage.enableVoiceHint || "false");
+// document.getElementById("enableVoiceHint").checked = JSON.parse(localStorage.enableVoiceHint);
+
 document.getElementById("clearMapButton").addEventListener("click", function () {
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
@@ -279,6 +288,7 @@ const routeLineLayer = new VectorLayer({
     features: [routeLineFeature],
   }),
   style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
     return routeStyle[feature.get("type")];
   },
 });
@@ -303,6 +313,7 @@ const trackPointsLayer = new VectorLayer({
   source: new VectorSource({
   }),
   style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
     return routeStyle[feature.get("type")];
   },
 });
@@ -387,6 +398,7 @@ trackLineString.addEventListener("change", function () {
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
+      routePoint: true,
       straight: (trackPointStraight[i] || false),
       type: getPointType(i),
       geometry: new Point(trackLineString.getCoordinates()[i]),
@@ -411,9 +423,9 @@ function toCoordinateString(coordinate) {
 function buildLinkCode() {
   const destinationPoints = [];
   const poiPoints = [];
-  
-  let linkCode = "https://jole84.se/nav-app/index.html?";  
-  
+
+  let linkCode = "https://jole84.se/nav-app/index.html?";
+
   trackPointsLayer.getSource().forEachFeature(function (feature) {
     destinationPoints[feature.getId()] = toCoordinateString(feature.getGeometry().getCoordinates());
   });
@@ -422,14 +434,14 @@ function buildLinkCode() {
     linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
   }
 
-  
+
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
     });
     linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
-  
+
   document.getElementById("linkCodeDiv").innerHTML = linkCode;
   return linkCode;
 }
@@ -556,6 +568,48 @@ function isTouchDevice() {
   );
 }
 
+const allowedTurnType = [2, 4, 5, 7, 13, 14];
+function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceToNext, turnDeg]) {
+  let returnString;
+  const nummer = {
+    1: "första",
+    2: "andra",
+    3: "tredje",
+    4: "fjärde",
+    5: "femte",
+  }
+  const turnType = {
+    1: "Fortsätt (rakt fram)",
+    2: "Sväng vänster",
+    3: "Sväng svagt åt vänster",
+    4: "Sväng skarpt vänster",
+    5: "Sväng höger",
+    6: "Sväng svagt åt höger",
+    7: "Sväng skarpt höger",
+    8: "Håll vänster",
+    9: "Håll höger",
+    10: "U-sväng",
+    11: "U-sväng höger",
+    12: "Off route",
+    13: "I rondellen, tag ",
+    14: "I rondellen, tag ",
+    15: "180 grader u-sväng",
+    16: "Beeline routing",
+  }
+  returnString = turnType[turnInstruction];
+  if (roundaboutExit > 0) {
+    returnString += nummer[roundaboutExit] + " utfarten";
+  }
+  // if (distanceToNext < 1000) {
+  //   returnString += ",\nfortsätt i " + Math.round(distanceToNext) + "m"
+  // }
+  // if (distanceToNext > 1000) {
+  //   returnString += ",\nfortsätt i " + Math.round(distanceToNext / 1000) + "km"
+  // }
+  return returnString;
+}
+routeStyle["routePoint"] = gpxStyle["Point"];
+
 function routeMe() {
   const coordsString = [];
   const straightPoints = [];
@@ -580,7 +634,8 @@ function routeMe() {
     coordsString.join("|") +
     "&profile=car-fast&alternativeidx=0&format=geojson" +
     "&straight=" +
-    straightPoints.join(",");
+    straightPoints.join(",") +
+    "&timode=2";
 
   if (trackPointsLayer.getSource().getFeatures().length >= 2) {
     reverseRoute.style.display = "unset";
@@ -599,6 +654,20 @@ function routeMe() {
           dataProjection: "EPSG:4326",
           featureProjection: "EPSG:3857"
         }).getGeometry().getCoordinates());
+
+        const voicehints = result.features[0].properties.voicehints;
+        const routeGeometryCoordinates = route.getCoordinates();
+        for (var i = 0; i < voicehints.length; i++) {
+          if (allowedTurnType.includes(voicehints[i][1]) && JSON.parse(localStorage.enableVoiceHint)) {
+            const marker = new Feature({
+              routePoint: false,
+              type: "routePoint",
+              name: translateVoicehint(voicehints[i]),
+              geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
+            });
+            trackPointsLayer.getSource().addFeature(marker);
+          }
+        }
       });
     });
   } else {
@@ -622,6 +691,23 @@ function route2gpx() {
       const name = element.get("name");
       gpxFile += `
   <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${name}</name></wpt>`;
+    }
+  }
+
+  if(trackPointsLayer.getSource().getFeatures().length > 2) {
+    for (const element of trackPointsLayer.getSource().getFeatures()) {
+      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+      if (element.getId() == 0) {
+        element.set("routePoint", false);
+        element.set("name", "Start");
+      } else if (element.get("type") == "endPoint") {
+        element.set("routePoint", false);
+        element.set("name", "Slut");
+      }
+      if (!element.get("routePoint")) {
+        gpxFile += `
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
+      }
     }
   }
 

@@ -34,7 +34,7 @@
       <div id="info3"></div>
       <div id="info4"></div>
       <div id="touchFriendly">
-        <input id="touchFriendlyCheck" class="form-check-input" type="checkbox" value=""/>
+        <input id="touchFriendlyCheck" class="form-check-input" type="checkbox" value="" />
         <label for="touchFriendlyCheck" class="form-check-label">Inaktivera touch</label>
       </div>
       <div id="showGPXdiv">
@@ -93,6 +93,10 @@
     <p><img src="https://jole84.se/84.svg" height="30"> Jole84 ruttplanerare med <a
         href="https://github.com/jole84/route-planner">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet
       och Trafikverket. Navigation från <a href="https://brouter.de/">BRouter</a>.</p>
+    <p>
+      <input class="form-check-input" role="switch" type="checkbox" id="enableVoiceHint">
+      <label class="form-check-label" for="enableVoiceHint">enableVoiceHint</label>
+    </p>
     <kbd>Högerklick</kbd> lägg till/ta bort waypoint<br>
     <kbd>Vänsterklick</kbd> växla waypoint till offroad<br>
     <kbd>Alt + vänsterklick</kbd> lägg till POI<br>
@@ -121,7 +125,8 @@
     <button class="btn btn-primary" id="gpxFileNameInputOk">OK</button>
   </div>
 
-  <input id="customFileButton" type="file" multiple accept=".gpx,application/gpx+xml,.kml,.geojson" style="display: none;" />
+  <input id="customFileButton" type="file" multiple accept=".gpx,application/gpx+xml,.kml,.geojson"
+    style="display: none;" />
 
 </body>
 
