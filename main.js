@@ -71,6 +71,15 @@ document.getElementById("showGPX").addEventListener("change", function () {
   gpxLayer.setVisible(showGPX.checked);
 });
 
+document.getElementById("enableVoiceHint").addEventListener("change", function () {
+  localStorage.enableVoiceHint = document.getElementById("enableVoiceHint").checked;
+  routeMe();
+});
+
+localStorage.enableVoiceHint = false;
+// localStorage.enableVoiceHint = JSON.parse(localStorage.enableVoiceHint || "false");
+// document.getElementById("enableVoiceHint").checked = JSON.parse(localStorage.enableVoiceHint);
+
 document.getElementById("clearMapButton").addEventListener("click", function () {
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
@@ -389,6 +398,7 @@ trackLineString.addEventListener("change", function () {
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
+      routePoint: true,
       straight: (trackPointStraight[i] || false),
       type: getPointType(i),
       geometry: new Point(trackLineString.getCoordinates()[i]),
@@ -593,9 +603,9 @@ function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceT
   // if (distanceToNext < 1000) {
   //   returnString += ",\nfortsätt i " + Math.round(distanceToNext) + "m"
   // }
-  if (distanceToNext > 1000) {
-    returnString += ",\nfortsätt i " + Math.round(distanceToNext / 1000) + "km"
-  }
+  // if (distanceToNext > 1000) {
+  //   returnString += ",\nfortsätt i " + Math.round(distanceToNext / 1000) + "km"
+  // }
   return returnString;
 }
 routeStyle["routePoint"] = gpxStyle["Point"];
@@ -648,8 +658,9 @@ function routeMe() {
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
         for (var i = 0; i < voicehints.length; i++) {
-          if (allowedTurnType.includes(voicehints[i][1])) {
+          if (allowedTurnType.includes(voicehints[i][1]) && JSON.parse(localStorage.enableVoiceHint)) {
             const marker = new Feature({
+              routePoint: false,
               type: "routePoint",
               name: translateVoicehint(voicehints[i]),
               geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
@@ -687,13 +698,16 @@ function route2gpx() {
     for (const element of trackPointsLayer.getSource().getFeatures()) {
       const lonlat = toLonLat(element.getGeometry().getCoordinates());
       if (element.getId() == 0) {
+        element.set("routePoint", false);
         element.set("name", "Start");
-      } else if (element.getId() == 1) {
+      } else if (element.get("type") == "endPoint") {
+        element.set("routePoint", false);
         element.set("name", "Slut");
       }
-      console.log(element.getId(), element.get("name"));
-      gpxFile += `
-  <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
+      if (!element.get("routePoint")) {
+        gpxFile += `
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
+      }
     }
   }
 
