@@ -81,6 +81,7 @@ localStorage.enableVoiceHint = false;
 // document.getElementById("enableVoiceHint").checked = JSON.parse(localStorage.enableVoiceHint);
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
+  localStorage.removeItem("trackPoints");
   trackPointStraight = {};
   trackPointsLayer.getSource().clear();
   poiLayer.getSource().clear();
@@ -1051,7 +1052,7 @@ poiLayer.getSource().addEventListener("change", function () {
 });
 
 // load features from localStorage
-JSON.parse(localStorage.trackPoints).forEach(function (element, index) {
+JSON.parse(localStorage.trackPoints || "[]").forEach(function (element, index) {
   trackPointStraight[index] = element[1];
   trackLineString.appendCoordinate(element[0]);
   if (index == JSON.parse(localStorage.trackPoints).length - 1) {
@@ -1059,7 +1060,7 @@ JSON.parse(localStorage.trackPoints).forEach(function (element, index) {
   }
 });
 
-JSON.parse(localStorage.poiString).forEach(function (element) {
+JSON.parse(localStorage.poiString || "[]").forEach(function (element) {
   const coordinate = element[0];
   const fileName = element[1];
   const poiMarker = new Feature({
