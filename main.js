@@ -37,6 +37,7 @@ const savePoiNameButton = document.getElementById("savePoiNameButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
 const reverseRoute = document.getElementById("reverseRoute");
+let enableVoiceHint = false;
 let gpxFileName;
 let poiCoordinate;
 let trackLength = 0;
@@ -72,23 +73,20 @@ document.getElementById("showGPX").addEventListener("change", function () {
 });
 
 document.getElementById("enableVoiceHint").addEventListener("change", function () {
-  localStorage.enableVoiceHint = document.getElementById("enableVoiceHint").checked;
+  enableVoiceHint = document.getElementById("enableVoiceHint").checked;
   routeMe();
 });
 
-localStorage.enableVoiceHint = false;
-// localStorage.enableVoiceHint = JSON.parse(localStorage.enableVoiceHint || "false");
-// document.getElementById("enableVoiceHint").checked = JSON.parse(localStorage.enableVoiceHint);
-
 document.getElementById("clearMapButton").addEventListener("click", function () {
-  localStorage.removeItem("trackPoints");
-  trackPointStraight = {};
-  trackPointsLayer.getSource().clear();
-  poiLayer.getSource().clear();
-  trackLineString.setCoordinates([]);
-  route.setCoordinates([]);
   gpxLayer.getSource().clear();
+  localStorage.removeItem("trackPoints");
+  poiLayer.getSource().clear();
+  route.setCoordinates([]);
   showGPXdiv.style.display = "none";
+  trackLineString.setCoordinates([]);
+  trackPointsLayer.getSource().clear();
+  trackPointStraight = {};
+  voiceHintsLayer.getSource().clear();
 });
 
 document.getElementById("clickFileButton").onclick = function () {
@@ -319,6 +317,15 @@ const trackPointsLayer = new VectorLayer({
   },
 });
 
+const voiceHintsLayer = new VectorLayer({
+  source: new VectorSource({
+  }),
+  style: function (feature) {
+    routeStyle["routePoint"].getText().setText(feature.get("name"));
+    return routeStyle[feature.get("type")];
+  },
+});
+
 const poiLayer = new VectorLayer({
   source: new VectorSource(),
   style: function (feature) {
@@ -376,6 +383,7 @@ const map = new Map({
     routeLineLayer,
     trackLineLayer,
     trackPointsLayer,
+    voiceHintsLayer,
     poiLayer,
   ],
   view: view,
@@ -399,7 +407,6 @@ trackLineString.addEventListener("change", function () {
   trackPointsLayer.getSource().clear();
   for (let i = 0; i < trackLineString.getCoordinates().length; i++) {
     const marker = new Feature({
-      routePoint: true,
       straight: (trackPointStraight[i] || false),
       type: getPointType(i),
       geometry: new Point(trackLineString.getCoordinates()[i]),
@@ -612,6 +619,7 @@ function translateVoicehint([geoPart, turnInstruction, roundaboutExit, distanceT
 routeStyle["routePoint"] = gpxStyle["Point"];
 
 function routeMe() {
+  voiceHintsLayer.getSource().clear();
   const coordsString = [];
   const straightPoints = [];
   const localStoragetrackPoints = [];
@@ -659,14 +667,13 @@ function routeMe() {
         const voicehints = result.features[0].properties.voicehints;
         const routeGeometryCoordinates = route.getCoordinates();
         for (var i = 0; i < voicehints.length; i++) {
-          if (allowedTurnType.includes(voicehints[i][1]) && JSON.parse(localStorage.enableVoiceHint)) {
+          if (allowedTurnType.includes(voicehints[i][1]) && enableVoiceHint) {
             const marker = new Feature({
-              routePoint: false,
               type: "routePoint",
               name: translateVoicehint(voicehints[i]),
               geometry: new Point(routeGeometryCoordinates[voicehints[i][0]]),
             });
-            trackPointsLayer.getSource().addFeature(marker);
+            voiceHintsLayer.getSource().addFeature(marker);
           }
         }
       });
@@ -695,20 +702,24 @@ function route2gpx() {
     }
   }
 
-  if(trackPointsLayer.getSource().getFeatures().length > 2) {
+  if(trackPointsLayer.getSource().getFeatures().length >= 2) {
     for (const element of trackPointsLayer.getSource().getFeatures()) {
       const lonlat = toLonLat(element.getGeometry().getCoordinates());
       if (element.getId() == 0) {
-        element.set("routePoint", false);
         element.set("name", "Start");
       } else if (element.get("type") == "endPoint") {
-        element.set("routePoint", false);
         element.set("name", "Slut");
       }
-      if (!element.get("routePoint")) {
-        gpxFile += `
+      gpxFile += `
         <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
-      }
+    }
+  }
+
+  if (enableVoiceHint) {
+    for (const element of voiceHintsLayer.getSource().getFeatures()) {
+      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+      gpxFile += `
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
     }
   }
 
