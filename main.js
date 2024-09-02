@@ -89,6 +89,9 @@ document.getElementById("clearMapButton").addEventListener("click", function () 
   route.setCoordinates([]);
   gpxLayer.getSource().clear();
   showGPXdiv.style.display = "none";
+  infoDiv.innerHTML = "";
+  info2Div.innerHTML = "";
+  info3Div.innerHTML = "";
 });
 
 document.getElementById("clickFileButton").onclick = function () {
