@@ -83,10 +83,9 @@ document.getElementById("clearMapButton").addEventListener("click", function () 
   poiLayer.getSource().clear();
   route.setCoordinates([]);
   showGPXdiv.style.display = "none";
-  trackLineString.setCoordinates([]);
-  trackPointsLayer.getSource().clear();
-  trackPointStraight = {};
-  voiceHintsLayer.getSource().clear();
+  infoDiv.innerHTML = "";
+  info2Div.innerHTML = "";
+  info3Div.innerHTML = "";
 });
 
 document.getElementById("clickFileButton").onclick = function () {
