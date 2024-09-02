@@ -79,13 +79,15 @@ document.getElementById("enableVoiceHint").addEventListener("change", function (
 
 document.getElementById("clearMapButton").addEventListener("click", function () {
   gpxLayer.getSource().clear();
+  info2Div.innerHTML = "";
+  info3Div.innerHTML = "";
+  infoDiv.innerHTML = "";
   localStorage.removeItem("trackPoints");
   poiLayer.getSource().clear();
   route.setCoordinates([]);
   showGPXdiv.style.display = "none";
-  infoDiv.innerHTML = "";
-  info2Div.innerHTML = "";
-  info3Div.innerHTML = "";
+  voiceHintsLayer.getSource().clear();
+  trackPointsLayer.getSource().clear();
 });
 
 document.getElementById("clickFileButton").onclick = function () {
