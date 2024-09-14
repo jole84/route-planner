@@ -253,10 +253,14 @@ const gpxStyle = {
       fill: new Fill({
         color: "blue",
       }),
-      stroke: new Stroke({
-        color: "white",
-        width: 4,
+      backgroundFill: new Fill({
+        color: [255, 255, 255, 0.9],
       }),
+      backgroundStroke: new Stroke({
+        color: [0, 0, 0, 0.9],
+        width: 1.5,
+      }),
+      padding: [0, 0, 0, 1],
     }),
   }),
   LineString: new Style({
@@ -346,10 +350,14 @@ const poiLayer = new VectorLayer({
         fill: new Fill({
           color: "#b41412",
         }),
-        stroke: new Stroke({
-          color: "white",
-          width: 4,
+        backgroundFill: new Fill({
+          color: [255, 255, 255, 0.9],
         }),
+        backgroundStroke: new Stroke({
+          color: [0, 0, 0, 0.9],
+          width: 1.5,
+        }),
+        padding: [0, 0, 0, 1],
       }),
     });
   },
@@ -812,10 +820,14 @@ function handleFileSelect(evt) {
                 fill: new Fill({
                   color: color,
                 }),
-                stroke: new Stroke({
-                  color: "white",
-                  width: 4,
+                backgroundFill: new Fill({
+                  color: [255, 255, 255, 0.9],
                 }),
+                backgroundStroke: new Stroke({
+                  color: [0, 0, 0, 0.9],
+                  width: 1.5,
+                }),
+                padding: [0, 0, 0, 1],
               }),
               image: new Icon({
                 anchor: [0.5, 1],
