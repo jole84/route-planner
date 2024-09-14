@@ -705,25 +705,22 @@ function route2gpx() {
     }
   }
 
-  if(trackPointsLayer.getSource().getFeatures().length >= 2) {
-    for (const element of trackPointsLayer.getSource().getFeatures()) {
-      const lonlat = toLonLat(element.getGeometry().getCoordinates());
-      if (element.getId() == 0) {
-        element.set("name", "Start");
-      } else if (element.get("type") == "endPoint") {
-        element.set("name", "Slut");
-      }
-      gpxFile += `
-        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
-    }
-  }
-
   if (enableVoiceHint) {
-    for (const element of voiceHintsLayer.getSource().getFeatures()) {
-      const lonlat = toLonLat(element.getGeometry().getCoordinates());
+    trackPointsLayer.getSource().forEachFeature(function (feature) {
+      const lonlat = toLonLat(feature.getGeometry().getCoordinates());
+      if (feature.get("type") == "startPoint") {
+        gpxFile += `
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>Start</name></wpt>`;
+      } else if (feature.get("type") == "endPoint") {
+        gpxFile += `
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>Mål ${(trackLength).toFixed(2)} km</name></wpt>`;
+      }
+    });
+    voiceHintsLayer.getSource().forEachFeature(function (feature) {
+      const lonlat = toLonLat(feature.getGeometry().getCoordinates());
       gpxFile += `
-        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${element.get("name")}</name></wpt>`;
-    }
+        <wpt lon="${lonlat[0]}" lat="${lonlat[1]}"><name>${feature.get("name")}</name></wpt>`;
+    });
   }
 
   if (route.getCoordinates().length > 0) {
@@ -752,7 +749,7 @@ function route2gpx() {
 
   if (routeExist) {
     const file = new Blob([gpxFile], { type: "application/gpx+xml" });
-    console.log(gpxFile, gpxFileName);
+    // console.log(gpxFile, gpxFileName);
     saveAs(file, gpxFileName + ".gpx");
   }
 }
