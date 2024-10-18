@@ -271,11 +271,11 @@ const gpxStyle = {
   }),
   Polygon: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 1],
+      color: [0, 0, 255, 1],
       width: 5,
     }),
     fill: new Fill({
-      color: [255, 0, 0, 0.2],
+      color: [0, 0, 255, 0.2],
     }),
   }),
 };
