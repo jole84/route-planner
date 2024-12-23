@@ -439,6 +439,8 @@ function toCoordinateString(coordinate) {
   return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
 }
 
+let qrCodeLink = new QRCode("qrRoutePlanner", "https://jole84.se/nav-app/index.html");
+
 function buildLinkCode() {
   const destinationPoints = [];
   const poiPoints = [];
@@ -456,12 +458,19 @@ function buildLinkCode() {
 
   if (poiLayer.getSource().getFeatures().length > 0) {
     poiLayer.getSource().forEachFeature(function (feature) {
-      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), feature.get("name")]);
+      poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), encodeURI(feature.get("name"))]);
     });
     linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
   }
 
   document.getElementById("linkCodeDiv").innerHTML = linkCode;
+  qrCodeLink.clear();
+  try {
+    qrCodeLink.makeCode(linkCode);
+  } catch {
+    console.log("qr error")
+  }
+
   return linkCode;
 }
 

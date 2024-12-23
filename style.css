@@ -82,7 +82,7 @@ body,
   background-size: 90%;
   position: absolute;
   min-width: 350px;
-  max-width: min(90%, 550px);
+  /* max-width: min(90%, 550px); */
   max-height: 95%;
   left: 50%;
   top: 50%;
@@ -237,4 +237,8 @@ body,
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+#qrRoutePlanner {
+  display: block;
 }
