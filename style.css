@@ -54,7 +54,6 @@ body,
 }
 
 #lowerRightGroup {
-  /* flex-direction: column; */
   flex-wrap: nowrap;
   right: 5px;
 }
@@ -82,7 +81,6 @@ body,
   background-size: 90%;
   position: absolute;
   min-width: 350px;
-  /* max-width: min(90%, 550px); */
   max-height: 95%;
   left: 50%;
   top: 50%;
@@ -96,10 +94,6 @@ body,
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   overflow: auto;
-}
-
-#helpTextOk {
-  float: right;
 }
 
 #gpxFileNameInput {
@@ -239,6 +233,8 @@ body,
   -webkit-box-orient: vertical;
 }
 
-#qrRoutePlanner {
-  display: block;
+.equalSpace {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
 }

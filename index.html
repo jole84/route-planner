@@ -91,7 +91,7 @@
   </div>
 
   <div id="helpText" class="textBox">
-    <h2>Välkommen till Jole84 ruttplanerare!</h2>
+    <h2>Jole84 ruttplanerare</h2>
     <p><img src="https://jole84.se/84.svg" height="30"> Jole84 ruttplanerare med <a
         href="https://github.com/jole84/route-planner">öppen källkod</a>, karta skapad av öppna data från Lantmäteriet
       och Trafikverket. Navigation från <a href="https://brouter.de/">BRouter</a>.</p>
@@ -106,18 +106,21 @@
     <kbd>Shift + högerklick</kbd> lägg till offroad waypoint<br>
     <kbd>Backspace</kbd> ta bort sista waypoint<br>
 
-    <br>
-    <button class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg"
-        width="50px"><br>Webbaserad <br>navigationsapp</button>
-
-    <button class="btn btn-success" id="shareRouteButton">Dela rutt</button>
-    <div id="qrRoutePlanner">
     <code class="user-select-all" id="linkCodeDiv">https://jole84.se/nav-app/index.html</code>
+
+    <div class="equalSpace">
+      <div>
+        <button class="btn btn-primary" id="navAppButton"><img src="https://jole84.se/nav-app.svg" width="50px"><br>Webbaserad <br>navigationsapp</button>
+        <button class="btn btn-success" id="shareRouteButton">Dela rutt</button>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="helpTextOk">OK</button>
+      </div>
+    </div>
+
     <hr>
-    <!-- <code class="user-select-all" id="linkCodeDiv2"></code> -->
-    <!-- <br> -->
-    <!-- <a href="https://jole84.se/nav-app/index.html" id="nav-link">Direktnavigering</a> -->
-    <button class="btn btn-primary" id="helpTextOk">OK</button>
+    
+    <div id="qrRoutePlanner"></div>
   </div>
 
   <div id="gpxFileNameInput" class="textBox">
