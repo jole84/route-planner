@@ -439,7 +439,11 @@ function toCoordinateString(coordinate) {
   return [(Number(coordinate[0].toFixed(5))), Number(coordinate[1].toFixed(5))];
 }
 
-let qrCodeLink = new QRCode("qrRoutePlanner", "https://jole84.se/nav-app/index.html");
+let qrCodeLink = new QRCode("qrRoutePlanner", {
+  text: "https://jole84.se/nav-app/index.html",
+  width: 350,
+  height: 350,
+});
 
 function buildLinkCode() {
   const destinationPoints = [];
