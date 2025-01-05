@@ -387,7 +387,7 @@ const drawLayer = new VectorLayer({
   source: new VectorSource(),
   style: new Style({
     stroke: new Stroke({
-      color: [255, 0, 0, 0.4],
+      color: [255, 0, 0, 0.5],
       width: 10,
     }),
   })
