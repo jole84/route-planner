@@ -7,6 +7,7 @@ import { toLonLat } from "ol/proj.js";
 import { toStringXY } from "ol/coordinate";
 import { Vector as VectorLayer } from "ol/layer.js";
 import { GPX, GeoJSON, KML } from 'ol/format.js';
+import Draw from 'ol/interaction/Draw.js';
 import KeyboardPan from "ol/interaction/KeyboardPan.js";
 import LineString from "ol/geom/LineString";
 import OSM from "ol/source/OSM.js";
@@ -382,6 +383,16 @@ const view = new View({
 const modifyTrackLine = new Modify({ source: trackLineLayer.getSource() });
 const modifypoi = new Modify({ source: poiLayer.getSource() });
 
+const drawLayer = new VectorLayer({
+  source: new VectorSource(),
+  style: new Style({
+    stroke: new Stroke({
+      color: [255, 0, 0, 0.4],
+      width: 10,
+    }),
+  })
+});
+
 const map = new Map({
   target: "map",
   layers: [
@@ -396,6 +407,7 @@ const map = new Map({
     trackPointsLayer,
     voiceHintsLayer,
     poiLayer,
+    drawLayer,
   ],
   view: view,
   keyboardEventTarget: document,
@@ -575,6 +587,9 @@ function removePosition(pixel) {
   }
 
   routeMe();
+
+  drawLayer.getSource().removeFeature(map.getFeaturesAtPixel(pixel)[0])
+
   return removedItem;
 }
 
@@ -989,7 +1004,23 @@ document.addEventListener("mouseup", function (event) {
   }
 });
 
+let draw; // global so we can remove it later
+
+function addDraw() {
+  draw = new Draw({
+    source: drawLayer.getSource(),
+    type: "LineString",
+    freehand: true,
+  });
+  map.addInteraction(draw);
+}
+
 document.addEventListener("keyup", function (event) {
+
+  if (event.key == "Shift" && !document.getElementById("helpText").checkVisibility()) {
+    map.removeInteraction(draw);
+  }
+
   if (!overlay.getPosition() && document.getElementById("gpxFileNameInput").style.display != "unset") {
     if (event.key == "p") {
       savePoiPopup();
@@ -998,6 +1029,17 @@ document.addEventListener("keyup", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
+
+  if (event.key == "Shift" && !document.getElementById("helpText").checkVisibility()) {
+    addDraw();
+  }
+
+  // remove last drawn feature
+  if (event.key == "r" && !document.getElementById("helpText").checkVisibility()) {
+    const lastDrawFeature = drawLayer.getSource().getFeatures();
+    drawLayer.getSource().removeFeature(lastDrawFeature[lastDrawFeature.length - 1]);
+  }
+  
   if (document.getElementById("helpText").style.display != "none" && (event.key == "Enter" || event.key == "Escape")) {
     document.getElementById("helpTextOk").click();
   } else if (document.getElementById("gpxFileNameInput").style.display == "unset") {
