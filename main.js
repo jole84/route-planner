@@ -18,13 +18,14 @@ import TileWMS from "ol/source/TileWMS.js";
 import VectorSource from "ol/source/Vector.js";
 import XYZ from "ol/source/XYZ.js";
 
-// const popupContent = document.getElementById('popup-content');
 const addPositionButton = document.getElementById("addPositionButton");
 const coordsDiv = document.getElementById("coordsDiv");
 const defaultCenter = [1700000, 8500000];
 const defaultZoom = 5;
 const exportRouteButton = document.getElementById("exportRouteButton");
 const fileNameInput = document.getElementById("fileNameInput");
+const gpxFileNameInput = document.getElementById("gpxFileNameInput");
+const helpText = document.getElementById("helpText");
 const info2Div = document.getElementById("info2");
 const info3Div = document.getElementById("info3");
 const info4Div = document.getElementById("info4");
@@ -33,11 +34,11 @@ const layerSelector = document.getElementById("layerSelector");
 const popupCloser = document.getElementById("popup-closer");
 const popupContainer = document.getElementById("popup");
 const removePositionButton = document.getElementById("removePositionButton");
+const reverseRoute = document.getElementById("reverseRoute");
 const savePoiButton = document.getElementById("savePoiButton");
 const savePoiNameButton = document.getElementById("savePoiNameButton");
 const showGPXdiv = document.getElementById("showGPXdiv");
 const touchFriendlyCheck = document.getElementById("touchFriendlyCheck");
-const reverseRoute = document.getElementById("reverseRoute");
 let enableVoiceHint = false;
 let gpxFileName;
 let poiCoordinate;
@@ -55,18 +56,18 @@ savePoiButton.onclick = savePoiPopup;
 
 exportRouteButton.onclick = function () {
   document.getElementById("gpxFileName").placeholder = "Rutt_" + new Date().toLocaleDateString().replaceAll(" ", "_") + "_" + trackLength.toFixed(2) + "km";
-  document.getElementById("gpxFileNameInput").style.display = "unset";
+  gpxFileNameInput.style.display = "unset";
   document.getElementById("gpxFileName").select();
 }
 
 document.getElementById("gpxFileNameInputOk").onclick = function () {
   gpxFileName = encodeURI(document.getElementById("gpxFileName").value.replaceAll(" ", "_") || document.getElementById("gpxFileName").placeholder);
-  document.getElementById("gpxFileNameInput").style.display = "none";
+  gpxFileNameInput.style.display = "none";
   route2gpx();
 }
 
 document.getElementById("gpxFileNameInputCancel").onclick = function () {
-  document.getElementById("gpxFileNameInput").style.display = "none";
+  gpxFileNameInput.style.display = "none";
 }
 
 document.getElementById("showGPX").addEventListener("change", function () {
@@ -98,14 +99,14 @@ document.getElementById("clickFileButton").onclick = function () {
 }
 
 document.getElementById("helpTextOk").onclick = function () {
-  document.getElementById("helpText").style.display = "none";
+  helpText.style.display = "none";
   document.getElementById("map").style.pointerEvents = "unset";
   document.getElementById("map").style.filter = "unset";
 };
 
 document.getElementById("menyButton").onclick = function () {
   buildLinkCode();
-  document.getElementById("helpText").style.display = "unset";
+  helpText.style.display = "unset";
   document.getElementById("shareRouteButton").innerHTML = "dela rutt";
 };
 
@@ -129,7 +130,7 @@ reverseRoute.onclick = function () {
   routeMe();
 }
 
-const overlay = new Overlay({
+const savePOIoverlay = new Overlay({
   element: popupContainer,
   autoPan: {
     animation: {
@@ -139,7 +140,7 @@ const overlay = new Overlay({
 });
 
 popupCloser.onclick = function () {
-  overlay.setPosition(undefined);
+  savePOIoverlay.setPosition(undefined);
   popupCloser.blur();
   return false;
 };
@@ -152,7 +153,7 @@ savePoiNameButton.onclick = function () {
     geometry: new Point(poiCoordinate),
   });
   poiLayer.getSource().addFeature(poiMarker);
-  overlay.setPosition(undefined);
+  savePOIoverlay.setPosition(undefined);
   popupCloser.blur();
   return false;
 };
@@ -411,7 +412,7 @@ const map = new Map({
   ],
   view: view,
   keyboardEventTarget: document,
-  overlays: [overlay],
+  overlays: [savePOIoverlay],
 });
 
 map.addInteraction(new KeyboardPan({ pixelDelta: 64 }));
@@ -530,7 +531,7 @@ function savePoiPopup() {
     toLonLat(map.getView().getCenter()).reverse(),
     5,
   ).replace(",", "");
-  overlay.setPosition(poiCoordinate);
+  savePOIoverlay.setPosition(poiCoordinate);
   fileNameInput.select();
 }
 
@@ -957,7 +958,7 @@ map.on("singleclick", function (event) {
     if (event.originalEvent.altKey) {
       // if alt + click add poi
       poiCoordinate = event.coordinate;
-      overlay.setPosition(poiCoordinate);
+      savePOIoverlay.setPosition(poiCoordinate);
       fileNameInput.value = toStringXY(
         toLonLat(poiCoordinate).reverse(),
         5,
@@ -984,7 +985,7 @@ map.on("singleclick", function (event) {
 
 map.on("contextmenu", function (event) {
   event.preventDefault();
-  // document.getElementById("helpText").style.display == "none" && !overlay.getPosition() && event.target.getAttribute("id") != "gpxFileName"
+  // helpText.style.display == "none" && !overlay.getPosition() && event.target.getAttribute("id") != "gpxFileName"
   if (!touchFriendlyCheck.checked) {
     if (event.originalEvent.shiftKey) {
       // if shift + click add offroad waypoint
@@ -1017,11 +1018,11 @@ function addDraw() {
 
 document.addEventListener("keyup", function (event) {
 
-  if (event.key == "Shift" && !document.getElementById("helpText").checkVisibility()) {
+  if (event.key == "Shift" && !helpText.checkVisibility()) {
     map.removeInteraction(draw);
   }
 
-  if (!overlay.getPosition() && document.getElementById("gpxFileNameInput").style.display != "unset") {
+  if (!savePOIoverlay.getPosition() && gpxFileNameInput.style.display != "unset") {
     if (event.key == "p") {
       savePoiPopup();
     }
@@ -1030,19 +1031,21 @@ document.addEventListener("keyup", function (event) {
 
 document.addEventListener("keydown", function (event) {
 
-  if (event.key == "Shift" && !document.getElementById("helpText").checkVisibility()) {
-    addDraw();
-  }
-
-  // remove last drawn feature
-  if (event.key == "r" && !document.getElementById("helpText").checkVisibility()) {
-    const lastDrawFeature = drawLayer.getSource().getFeatures();
-    drawLayer.getSource().removeFeature(lastDrawFeature[lastDrawFeature.length - 1]);
+  if (!helpText.checkVisibility() && !gpxFileNameInput.checkVisibility() && !savePOIoverlay.getPosition()) {
+    if (event.key == "Shift") {
+      addDraw();
+    }
+  
+    // remove last drawn feature
+    if (event.key == "r") {
+      const lastDrawFeature = drawLayer.getSource().getFeatures();
+      drawLayer.getSource().removeFeature(lastDrawFeature[lastDrawFeature.length - 1]);
+    }
   }
   
-  if (document.getElementById("helpText").style.display != "none" && (event.key == "Enter" || event.key == "Escape")) {
+  if (helpText.checkVisibility() && (event.key == "Enter" || event.key == "Escape")) {
     document.getElementById("helpTextOk").click();
-  } else if (document.getElementById("gpxFileNameInput").style.display == "unset") {
+  } else if (gpxFileNameInput.style.display == "unset") {
     if (event.key == "Enter") {
       event.preventDefault();
       document.getElementById("gpxFileNameInputOk").click();
@@ -1050,7 +1053,7 @@ document.addEventListener("keydown", function (event) {
     if (event.key == "Escape") {
       document.getElementById("gpxFileNameInputCancel").click();
     }
-  } else if (!overlay.getPosition()) {
+  } else if (!savePOIoverlay.getPosition()) {
     if (event.ctrlKey && event.key == "s") {
       event.preventDefault();
       exportRouteButton.click();
@@ -1072,7 +1075,7 @@ document.addEventListener("keydown", function (event) {
       switchMap();
     }
   }
-  if (overlay.getPosition() != undefined) {
+  if (!!savePOIoverlay.getPosition()) {
     if (event.key == "Enter") {
       event.preventDefault();
       savePoiNameButton.click();
