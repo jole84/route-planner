@@ -589,7 +589,10 @@ function removePosition(pixel) {
 
   routeMe();
 
-  drawLayer.getSource().removeFeature(map.getFeaturesAtPixel(pixel)[0])
+  if (!!map.getFeaturesAtPixel(pixel)[0]) {
+    drawLayer.getSource().removeFeature(map.getFeaturesAtPixel(pixel)[0]);
+    removedItem = true;
+  }
 
   return removedItem;
 }
