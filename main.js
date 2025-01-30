@@ -262,7 +262,7 @@ const gpxStyle = {
         color: [0, 0, 0, 0.9],
         width: 1.5,
       }),
-      padding: [0, 0, 0, 1],
+      padding: [2, 1, 0, 2],
     }),
   }),
   LineString: new Style({
@@ -698,8 +698,7 @@ function routeMe() {
 
         // add route information to info box
         infoDiv.innerHTML = "Avstånd: " + trackLength.toFixed(2) + " km";
-        info2Div.innerHTML =
-          "Restid: " +
+        info2Div.innerHTML = "Restid: " +
           new Date(0 + totalTime).toUTCString().toString().slice(16, 25);
 
         route.setCoordinates(new GeoJSON().readFeature(result.features[0], {
