@@ -469,7 +469,7 @@ function buildLinkCode() {
   });
 
   if (destinationPoints.length > 0) {
-    linkCode += "destinationPoints=" + JSON.stringify(destinationPoints);
+    linkCode += "destinationPoints=" + encodeURIComponent(JSON.stringify(destinationPoints));
   }
 
 
@@ -477,10 +477,10 @@ function buildLinkCode() {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), encodeURI(feature.get("name"))]);
     });
-    linkCode += "&poiPoints=" + JSON.stringify(poiPoints);
+    linkCode += "&poiPoints=" + encodeURIComponent(JSON.stringify(poiPoints));
   }
 
-  document.getElementById("linkCodeDiv").innerHTML = linkCode;
+  document.getElementById("linkCodeDiv").innerHTML = encodeURIComponent(linkCode);
   qrCodeLink.clear();
   try {
     qrCodeLink.makeCode(linkCode);
