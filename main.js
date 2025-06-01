@@ -470,6 +470,7 @@ function buildLinkCode() {
 
   if (destinationPoints.length > 0) {
     linkCode += "destinationPoints=" + encodeURIComponent(JSON.stringify(destinationPoints));
+    console.log("destinationPoints64=" + btoa(JSON.stringify(routePoints)))
   }
 
 
