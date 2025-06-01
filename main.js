@@ -470,7 +470,7 @@ function buildLinkCode() {
 
   if (destinationPoints.length > 0) {
     linkCode += "destinationPoints=" + encodeURIComponent(JSON.stringify(destinationPoints));
-    console.log("destinationPoints64=" + btoa(JSON.stringify(destinationPoints)))
+    console.log("https://jole84.se/nav-app/index.html?destinationPoints64=" + btoa(JSON.stringify(destinationPoints)))
   }
 
 
