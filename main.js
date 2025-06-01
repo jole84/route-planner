@@ -481,7 +481,7 @@ function buildLinkCode() {
     linkCode += "&poiPoints=" + encodeURIComponent(JSON.stringify(poiPoints));
   }
 
-  document.getElementById("linkCodeDiv").innerHTML = encodeURIComponent(linkCode);
+  document.getElementById("linkCodeDiv").innerHTML = linkCode;
   qrCodeLink.clear();
   try {
     qrCodeLink.makeCode(linkCode);
