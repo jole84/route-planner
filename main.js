@@ -469,7 +469,7 @@ function buildLinkCode() {
   });
 
   if (destinationPoints.length > 0) {
-    linkCode += "destinationPoints=" + encodeURIComponent(JSON.stringify(destinationPoints));
+    linkCode += "destinationPoints64=" + btoa(JSON.stringify(destinationPoints));
     console.log("https://jole84.se/nav-app/index.html?destinationPoints64=" + btoa(JSON.stringify(destinationPoints)))
   }
 
@@ -478,7 +478,7 @@ function buildLinkCode() {
     poiLayer.getSource().forEachFeature(function (feature) {
       poiPoints.push([toCoordinateString(feature.getGeometry().getCoordinates()), encodeURI(feature.get("name"))]);
     });
-    linkCode += "&poiPoints=" + encodeURIComponent(JSON.stringify(poiPoints));
+    linkCode += "&poiPoints64=" + btoa(JSON.stringify(poiPoints));
   }
 
   document.getElementById("linkCodeDiv").innerHTML = linkCode;
